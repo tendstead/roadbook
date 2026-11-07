@@ -50,7 +50,7 @@ func run() error {
 	if err != nil {
 		return err
 	}
-	server := &http.Server{Addr: ":" + env("PORT", "8080"), Handler: httpapi.New(s.Pool.Ping, assets), ReadHeaderTimeout: 5 * time.Second, IdleTimeout: 60 * time.Second}
+	server := &http.Server{Addr: ":" + env("PORT", "8080"), Handler: httpapi.Application(s, assets, env("DATA_DIR", "/data")), ReadHeaderTimeout: 5 * time.Second, IdleTimeout: 60 * time.Second}
 	result := make(chan error, 1)
 	go func() { slog.Info("Roadbook listening", "address", server.Addr); result <- server.ListenAndServe() }()
 	select {
