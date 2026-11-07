@@ -17,24 +17,24 @@ The image name is derived from GitHub repository context; the proposed name is
 `ghcr.io/tendstead/roadbook`. There is no repository or package there created by
 this setup. No `latest` image alias is used by the inherited release script.
 
-## Included, but not enabled
+## Manual release workflow
 
 `scripts/release.mjs` and `scripts/release.test.mjs` are copied unchanged from the
 local shopping-list reference. They handle SemVer allocation, dispatch guards,
 rerun recovery, registry identity validation, and release ordering.
-`docs/templates/release.yml.example` adapts its release workflow and is outside
-`.github/workflows`, so GitHub cannot run it yet. It explicitly calls
-`make app-check`; that target now runs the complete application checks. The
-release workflow remains inactive until release activation is explicitly requested.
+`.github/workflows/release.yml` adapts that workflow and runs only on an explicit
+manual dispatch from the default branch. It verifies the exact commit with
+`make app-check`, including locked dependency installation and all application
+checks, before a separate job receives publishing permissions. The historical
+template under docs/templates remains reference material. Development pushes,
+PRs and labels do not dispatch this workflow. No release has been run yet.
 
-To activate after implementation:
+Before the first release:
 
-- Supply the reviewed multi-stage Dockerfile and static frontend build; include
-  a non-root runtime, healthcheck command, readiness behavior and migration strategy.
-- Implement `make app-check` to run `make deps check` using the completed app's
-  containerized tooling. Keep release-script tests in the full check suite.
-- Copy the template to `.github/workflows/release.yml`, validate both workflows
-  with actionlint, review Docker context exclusions, and run the full app checks.
+- Verify the multi-stage Dockerfile, embedded frontend, non-root runtime,
+  readiness and transactional migration behavior against the release commit.
+- Run full app-check and actionlint; review Docker context exclusions and image
+  license notices. Retain release-script tests in the full suite.
 - Confirm repository/organization permissions allow Actions to create release
   tags, GitHub releases and GHCR packages. Publishing uses short-lived
   `GITHUB_TOKEN`, with `contents: write` and `packages: write` only in publish.

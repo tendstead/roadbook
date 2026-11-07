@@ -34,10 +34,15 @@ type FuelStats struct {
 }
 
 func Ratio(n, d int64, precision int) string {
+	return RatioScaled(n, d, 1, 1, precision)
+}
+func RatioScaled(n, d, scaleN, scaleD int64, precision int) string {
 	if d <= 0 {
 		return ""
 	}
-	return new(big.Rat).SetFrac(big.NewInt(n), big.NewInt(d)).FloatString(precision)
+	value := new(big.Rat).SetFrac(big.NewInt(n), big.NewInt(d))
+	value.Mul(value, new(big.Rat).SetFrac(big.NewInt(scaleN), big.NewInt(scaleD)))
+	return value.FloatString(precision)
 }
 
 func CalculateFuel(entries []FuelEntry, initial *int64) FuelStats {
@@ -102,7 +107,7 @@ func CalculateFuel(entries []FuelEntry, initial *int64) FuelStats {
 			priced = true
 		}
 	}
-	s.Consumption = Ratio(totalML*100, s.MatchedDistanceM, 3)
-	s.FuelCostPerKM = Ratio(totalCost*10, s.PricedDistanceM, 4)
+	s.Consumption = RatioScaled(totalML, s.MatchedDistanceM, 100, 1, 3)
+	s.FuelCostPerKM = RatioScaled(totalCost, s.PricedDistanceM, 10, 1, 4)
 	return s
 }

@@ -59,7 +59,7 @@ func Summarize(state State, today string) map[string]Summary {
 				end, _ = time.Parse("2006-01-02", v.OwnershipEnd)
 			}
 			days := int64(end.Sub(start) / (24 * time.Hour))
-			sum.UpkeepMonthly = Ratio(sum.UpkeepMinor*30436875, days*1000000, 0)
+			sum.UpkeepMonthly = RatioScaled(sum.UpkeepMinor, days, 30436875, 1000000, 0)
 		}
 		out[v.ID] = sum
 	}
