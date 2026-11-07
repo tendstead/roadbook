@@ -6,8 +6,8 @@
   "license": "Elastic-2.0",
   "scripts": {
     "dev": "vite --host 0.0.0.0",
-    "build": "vite build",
-    "check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
+    "build": "node ../scripts/licenses.mjs && vite build",
+    "check": "node ../scripts/licenses.mjs && svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
     "lint": "eslint . && prettier --check .",
     "format": "prettier --write .",
     "test": "vitest run",
@@ -34,5 +34,11 @@
     "globals": "^16.0.0",
     "prettier": "^3.0.0",
     "prettier-plugin-svelte": "^3.0.0"
+  },
+  "imports": {
+    "#lib/*": "./src/lib/*"
+  },
+  "overrides": {
+    "minimatch": "11.0.5"
   }
 }
