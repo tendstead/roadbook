@@ -1,0 +1,26 @@
+name: Bug report
+description: Report a reproducible Roadbook problem
+title: "Bug: "
+body:
+  - type: textarea
+    id: behavior
+    attributes:
+      label: Expected and actual behavior
+      description: Include reproduction steps and version. Use synthetic data; omit private receipts and credentials.
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: Version or commit
+    validations:
+      required: true
+  - type: textarea
+    id: environment
+    attributes:
+      label: Browser, device and deployment environment
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Sanitized logs or screenshots
+      description: Never attach real receipts, exports, tokens or credentials.

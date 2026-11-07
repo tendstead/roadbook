@@ -1,0 +1,32 @@
+services:
+  go:
+    image: golang:1.27.3
+    working_dir: /app
+    cpus: 2
+    mem_limit: 2g
+    volumes: [".:/app", "go-mod:/go/pkg/mod", "go-build:/root/.cache/go-build"]
+  frontend:
+    image: node:24-alpine
+    working_dir: /app/web
+    user: "${LOCAL_UID:-1000}:${LOCAL_GID:-1000}"
+    environment: {HOME: /tmp}
+    cpus: 2
+    mem_limit: 1g
+    volumes: [".:/app"]
+  browser:
+    image: mcr.microsoft.com/playwright:v1.63.0-noble
+    working_dir: /app/web
+    user: "${LOCAL_UID:-1000}:${LOCAL_GID:-1000}"
+    environment: {HOME: /tmp, CI: "1", BASE_URL: "${BASE_URL:-http://app:8080}"}
+    cpus: 2
+    mem_limit: 2g
+    volumes: [".:/app"]
+  lint:
+    image: golangci/golangci-lint:v2.15.0
+    working_dir: /app
+    cpus: 2
+    mem_limit: 2g
+    volumes: [".:/app", "go-mod:/go/pkg/mod", "go-build:/root/.cache/go-build"]
+volumes:
+  go-mod:
+  go-build:

@@ -1,0 +1,34 @@
+services:
+  db:
+    image: postgres:18-alpine
+    environment: {POSTGRES_USER: roadbook, POSTGRES_PASSWORD: test-only, POSTGRES_DB: roadbook}
+    tmpfs: [/var/lib/postgresql]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U roadbook -d roadbook"]
+      interval: 1s
+      timeout: 3s
+      retries: 30
+    cpus: 1
+    mem_limit: 512m
+  service:
+    image: golang:1.27.3
+    working_dir: /app
+    volumes: [".:/app", "test-go-mod:/go/pkg/mod", "test-go-build:/root/.cache/go-build"]
+    environment: {TEST_DATABASE_URL: "postgres://roadbook:test-only@db:5432/roadbook?sslmode=disable", SERVICE_TEST: "1"}
+    command: ["go", "test", "-race", "-count=1", "./internal/..."]
+    depends_on: {db: {condition: service_healthy}}
+    cpus: 2
+    mem_limit: 2g
+  app:
+    build: .
+    environment: {DATABASE_URL: "postgres://roadbook:test-only@db:5432/roadbook?sslmode=disable"}
+    depends_on: {db: {condition: service_healthy}}
+    cpus: 2
+    mem_limit: 512m
+  browser:
+    extends: {file: compose.tools.yaml, service: browser}
+    depends_on: {app: {condition: service_healthy}}
+    command: ["npm", "run", "test:e2e"]
+volumes:
+  test-go-mod:
+  test-go-build:

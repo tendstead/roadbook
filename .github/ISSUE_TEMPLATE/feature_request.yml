@@ -1,0 +1,19 @@
+name: Feature request
+description: Describe a car-tracking need
+title: "Feature: "
+body:
+  - type: textarea
+    id: need
+    attributes:
+      label: What do you want to do, and why?
+      description: Explain the workflow and the smallest useful outcome.
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed behavior
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives and workarounds considered

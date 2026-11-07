@@ -1,0 +1,29 @@
+services:
+  app:
+    build: .
+    ports: ["127.0.0.1:${ROADBOOK_PORT:-8082}:8080"]
+    environment:
+      DATABASE_URL: postgres://roadbook:${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}@db:5432/roadbook?sslmode=disable
+    volumes: ["attachments:/data"]
+    depends_on: {db: {condition: service_healthy}}
+    cpus: 2
+    mem_limit: 512m
+    restart: unless-stopped
+  db:
+    image: postgres:18-alpine
+    environment:
+      POSTGRES_USER: roadbook
+      POSTGRES_DB: roadbook
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}
+    volumes: ["database:/var/lib/postgresql"]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U roadbook -d roadbook"]
+      interval: 3s
+      timeout: 3s
+      retries: 20
+    cpus: 1
+    mem_limit: 512m
+    restart: unless-stopped
+volumes:
+  database:
+  attachments:
