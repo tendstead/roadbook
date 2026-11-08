@@ -229,6 +229,9 @@ test('fuel history fits compact rows while keeping source details and editing ac
             notes: 'Station note',
             extra: {
               '10:later': 'tenth',
+              '11:trailing': '',
+              '12:trailing': '  ',
+              '3:interior': '',
               '2:second': 'second',
               '1:source': 'kept'
             }
@@ -279,6 +282,7 @@ test('fuel history fits compact rows while keeping source details and editing ac
   await expect(row.locator('dt')).toHaveText([
     '1:source',
     '2:second',
+    '3:interior',
     '10:later'
   ]);
   await row.getByRole('button', { name: 'Edit', exact: true }).click();
