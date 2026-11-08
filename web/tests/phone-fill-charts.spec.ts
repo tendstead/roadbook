@@ -32,7 +32,7 @@ async function seed(page: Page, request: APIRequestContext) {
   );
   return { headers, vehicle };
 }
-test('batch full-fill choice updates local examples, server review and saved records', async ({
+test('full-fill import default updates local examples, server review and saved records', async ({
   page,
   request
 }) => {
@@ -52,9 +52,12 @@ test('batch full-fill choice updates local examples, server review and saved rec
     ['Distance driven column', '3']
   ])
     await page.getByRole('combobox', { name, exact: true }).selectOption(value);
-  await page
-    .getByRole('combobox', { name: 'Fill type for this import', exact: true })
-    .selectOption('full');
+  await expect(
+    page.getByRole('combobox', {
+      name: 'Fill type for this import',
+      exact: true
+    })
+  ).toHaveValue('full');
   await expect(page.locator('.import-example').first()).toContainText(
     'Full fill'
   );

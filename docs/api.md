@@ -78,3 +78,8 @@ Omit it to respect mapped values and retain unknown when not mapped. An explicit
 override applies to every source row, is included in the import fingerprint and
 is recorded as `import:tank_override` source metadata. Source cells are preserved;
 users may still correct individual reviewed rows before commit.
+
+The browser importer preselects `tank_override: "full"` as its visible initial
+choice. Users can select CSV values or another override before review. The API
+continues to preserve unknown when the property is omitted; existing records are
+not changed by the UI default.

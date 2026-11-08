@@ -34,7 +34,7 @@
   let first = $state(2);
   let last = $state(0);
   let defaultCategory = $state('repair');
-  let tankOverride = $state('');
+  let tankOverride = $state('full');
   let mappings = $state<Record<string, number>>({});
   let activeColumn = $state<number | null>(null);
   let rows = $state<Row[]>([]);
@@ -157,7 +157,7 @@
     notice = '';
     source = '';
     filename = '';
-    tankOverride = '';
+    tankOverride = 'full';
     mappings = {};
     activeColumn = null;
     if (file.size > 1500000) {
@@ -298,10 +298,10 @@
             aria-label={$t('Fill type for this import')}
             aria-describedby="fill-override-help"
           >
+            <option value="full">{$t('All fills were full')}</option>
             <option value=""
               >{$t('Use CSV values · unknown when not mapped')}</option
             >
-            <option value="full">{$t('All fills were full')}</option>
             <option value="partial">{$t('All fills were partial')}</option>
             <option value="unknown">{$t('Mark all as unknown')}</option>
           </select>
@@ -616,10 +616,9 @@
                         row: row.source_row
                       })}
                       bind:value={row.entry.tank}
-                      ><option value="unknown">{$t('Unknown')}</option><option
-                        value="full">{$t('Full fill')}</option
-                      ><option value="partial">{$t('Partial fill')}</option
-                      ></select
+                      ><option value="full">{$t('Full fill')}</option><option
+                        value="partial">{$t('Partial fill')}</option
+                      ><option value="unknown">{$t('Unknown')}</option></select
                     ></td
                   >{:else}<td
                     ><select

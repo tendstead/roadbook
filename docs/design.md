@@ -119,8 +119,8 @@ columns. All rows preview as valid/warning/error; block invalid selected rows;
 allow deselection. Preserve unmapped cells as extra data unless explicitly ignored.
 Summary cells are not silently treated as itemized records. Commit in one DB
 transaction with a content+mapping+vehicle fingerprint and per-row keys. Repeat
-commit is idempotent; warn about matching existing records. Never force unknown
-tank status to full. Export complete records and metadata with explicit units.
+commit is idempotent; warn about matching existing records. Unspecified API tank
+status remains unknown; import assumptions are visible in the fill-type control. Export complete records and metadata with explicit units.
 
 The v1 guided import workspace lives at Settings → Import (`/settings#import`).
 An empty-history banner links there until the first fuel or expense record exists.
@@ -169,3 +169,9 @@ maximum, responsive non-overlapping period labels, and hover/focus/tap tooltips.
 Exact values remain in a screen-reader-accessible table without a visible
 “View values” disclosure. The header sun/moon control stores light/dark preference
 per browser, initially following the device, using the published shared theme.
+
+The user-requested CSV import default is “All fills were full,” preselected when
+choosing each file. It is shown explicitly in local examples and server review,
+with per-row correction and CSV/partial/unknown alternatives retained. This is a
+UI default for the reviewed import, not a change to unspecified API values or
+existing records. Full-fill is listed first in the import review dropdown.
