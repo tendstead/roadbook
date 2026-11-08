@@ -1,5 +1,12 @@
 // English source messages are keys. User and imported content is never translated.
 export const german: Record<string, string> = {
+  'Import format': 'Importformat',
+  'Comma decimals': 'Komma als Dezimalzeichen',
+  'Point decimals': 'Punkt als Dezimalzeichen',
+  'Select a column to see example values.':
+    'Wähle eine Spalte, um Beispielwerte zu sehen.',
+  'Column examples': 'Spaltenbeispiele',
+
   'Filled to full?': 'Vollgetankt?',
   'Full fill': 'Vollgetankt',
   'Partial fill': 'Teilbetankung',

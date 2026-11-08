@@ -42,6 +42,7 @@ async function file(page: Page) {
       'Date;Paid;Litres;Distance;Memo\n04/05/2025;54,45;30,25;500,1;First note\n05/06/2025;60;32;510;Second note'
     )
   });
+  await page.locator('.import-format > summary').click();
   await page
     .getByRole('combobox', { name: 'Delimiter', exact: true })
     .selectOption(';');
@@ -96,11 +97,20 @@ test('mapping examples stay local, match history and invalidate changed review',
   await page.goto('/settings#import');
   await file(page);
   await expect(
+    page.getByRole('combobox', { name: 'Date column', exact: true })
+  ).toHaveValue('-1');
+  await expect(
     page.getByRole('button', { name: 'Use column 1: Date', exact: true })
-  ).toContainText('04/05/2025');
+  ).not.toContainText('04/05/2025');
   await page
     .getByRole('button', { name: 'Use column 1: Date', exact: true })
     .click();
+  await expect(
+    page.getByRole('region', { name: 'Column examples', exact: true })
+  ).toContainText('04/05/2025');
+  await expect(
+    page.getByRole('region', { name: 'Column examples', exact: true })
+  ).toContainText('05/06/2025');
   await page.getByRole('button', { name: 'Map Date', exact: true }).click();
   await page
     .getByRole('combobox', { name: 'Amount paid column', exact: true })
@@ -111,6 +121,10 @@ test('mapping examples stay local, match history and invalidate changed review',
   await page
     .getByRole('combobox', { name: 'Distance driven column', exact: true })
     .selectOption('3');
+  await expect(
+    page.getByRole('combobox', { name: 'Notes column', exact: true })
+  ).not.toBeVisible();
+  await page.locator('.mapping-optional > summary').click();
   await page
     .getByRole('combobox', { name: 'Notes column', exact: true })
     .selectOption('4');
@@ -121,6 +135,16 @@ test('mapping examples stay local, match history and invalidate changed review',
   await expect(examples.first()).toContainText('54.45');
   await expect(examples.first()).toContainText('First note');
   expect(sent).toEqual([]);
+  await page.locator('.mapping-optional > summary').click();
+  await page.locator('.import-format > summary').click();
+  await page
+    .getByRole('button', { name: 'Use column 1: Date', exact: true })
+    .click();
+  expect(
+    (await page
+      .getByRole('button', { name: 'Use column 1: Date', exact: true })
+      .boundingBox())!.height
+  ).toBeLessThan(49);
   await page.screenshot({
     path: `test-results/import-workspace-${test.info().project.name}.png`,
     fullPage: true
@@ -128,6 +152,10 @@ test('mapping examples stay local, match history and invalidate changed review',
   await page
     .getByRole('button', { name: 'Preview import', exact: true })
     .click();
+  await expect(
+    page.getByRole('heading', { name: 'Review 2 rows' })
+  ).toBeVisible();
+  await page.locator('.import-format > summary').click();
   await expect(
     page.getByRole('heading', { name: 'Review 2 rows' })
   ).toBeVisible();
@@ -173,6 +201,7 @@ test('drop file, drag column, keyboard mapping and source units work without ove
   await page
     .getByRole('region', { name: 'Drop CSV file' })
     .dispatchEvent('drop', { dataTransfer: transfer });
+  await page.locator('.import-format > summary').click();
   await page
     .getByRole('combobox', { name: 'Date format', exact: true })
     .selectOption('YYYY.MM.DD');

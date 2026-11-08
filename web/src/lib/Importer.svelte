@@ -35,6 +35,7 @@
   let last = $state(0);
   let defaultCategory = $state('repair');
   let tankOverride = $state('full');
+  let formatOpen = $state(false);
   let mappings = $state<Record<string, number>>({});
   let activeColumn = $state<number | null>(null);
   let rows = $state<Row[]>([]);
@@ -158,6 +159,7 @@
     source = '';
     filename = '';
     tankOverride = 'full';
+    formatOpen = false;
     mappings = {};
     activeColumn = null;
     if (file.size > 1500000) {
@@ -312,94 +314,167 @@
           >
         </label>
       {/if}
-      <div class="grid source-controls">
-        <label
-          >{$t('Delimiter')}<select
-            bind:value={delimiter}
-            onchange={() => {
-              mappings = {};
-              activeColumn = null;
-            }}
-            ><option value=",">{$t('Comma')}</option><option value=";"
-              >{$t('Semicolon')}</option
-            ><option value="&#9;">{$t('Tab')}</option></select
-          ></label
+      <details class="import-format" bind:open={formatOpen}>
+        <summary
+          ><span>{$t('Import format')}</span><small>
+            {$t(
+              kind === 'fuel'
+                ? 'Fuel'
+                : kind === 'expense'
+                  ? 'Expenses / upkeep'
+                  : 'Recurring expenses'
+            )} ·
+            {$t(
+              delimiter === ','
+                ? 'Comma'
+                : delimiter === ';'
+                  ? 'Semicolon'
+                  : 'Tab'
+            )} ·
+            {dateFormat} · {$t(
+              decimal === ',' ? 'Comma decimals' : 'Point decimals'
+            )} · {distanceUnit} / {fuelUnit}
+          </small></summary
         >
-        <label
-          >{$t('Decimal separator')}<select bind:value={decimal}
-            ><option value=",">{$t('Comma (1.234,56)')}</option><option
-              value=".">{$t('Point (1,234.56)')}</option
-            ></select
-          ></label
-        >
-        <label
-          >{$t('Date format')}<select bind:value={dateFormat}
-            >{#each dateFormats as format (format)}<option>{format}</option
-              >{/each}</select
-          ></label
-        >
-        <label
-          >{$t('Table type')}<select
-            bind:value={kind}
-            onchange={() => {
-              mappings = {};
-              activeColumn = null;
-            }}
-            ><option value="fuel">{$t('Fuel')}</option><option value="expense"
-              >{$t('Expenses / upkeep')}</option
-            ><option value="schedule">{$t('Recurring expenses')}</option
-            ></select
-          ></label
-        >
-        <label
-          >{$t('First data row')}<input
-            type="number"
-            min="2"
-            bind:value={first}
-          /></label
-        >
-        <label
-          >{$t('Last data row (0 = end)')}<input
-            type="number"
-            min="0"
-            bind:value={last}
-          /></label
-        >
-        <label
-          >{$t('Source distance unit')}<select bind:value={distanceUnit}
-            >{#each ['km', 'mi'] as unit (unit)}<option>{unit}</option
-              >{/each}</select
-          ></label
-        >
-        <label
-          >{$t('Source fuel unit')}<select bind:value={fuelUnit}
-            >{#each ['L', 'US gal', 'Imp gal'] as unit (unit)}<option
-                >{unit}</option
-              >{/each}</select
-          ></label
-        >
-        {#if kind !== 'fuel'}<label
-            >{$t('Default category')}<select bind:value={defaultCategory}
-              >{#each ['repair', 'service', 'tyres', 'inspection', 'parts', 'purchase', 'insurance', 'tax', 'lease', 'parking', 'toll', 'other'] as category (category)}<option
-                  value={category}>{$t(category)}</option
+        <div class="grid source-controls">
+          <label
+            >{$t('Delimiter')}<select
+              bind:value={delimiter}
+              onchange={() => {
+                mappings = {};
+                activeColumn = null;
+              }}
+              ><option value=",">{$t('Comma')}</option><option value=";"
+                >{$t('Semicolon')}</option
+              ><option value="&#9;">{$t('Tab')}</option></select
+            ></label
+          >
+          <label
+            >{$t('Decimal separator')}<select bind:value={decimal}
+              ><option value=",">{$t('Comma (1.234,56)')}</option><option
+                value=".">{$t('Point (1,234.56)')}</option
+              ></select
+            ></label
+          >
+          <label
+            >{$t('Date format')}<select bind:value={dateFormat}
+              >{#each dateFormats as format (format)}<option>{format}</option
                 >{/each}</select
             ></label
-          >{/if}
-      </div>
-      <p class="muted">
-        {$t(
-          'Source currency: {currency}. Amounts are not converted between currencies.',
-          { currency: $data!.state.settings.currency }
-        )}
-      </p>
+          >
+          <label
+            >{$t('Table type')}<select
+              bind:value={kind}
+              onchange={() => {
+                mappings = {};
+                activeColumn = null;
+              }}
+              ><option value="fuel">{$t('Fuel')}</option><option value="expense"
+                >{$t('Expenses / upkeep')}</option
+              ><option value="schedule">{$t('Recurring expenses')}</option
+              ></select
+            ></label
+          >
+          <label
+            >{$t('First data row')}<input
+              type="number"
+              min="2"
+              bind:value={first}
+            /></label
+          >
+          <label
+            >{$t('Last data row (0 = end)')}<input
+              type="number"
+              min="0"
+              bind:value={last}
+            /></label
+          >
+          <label
+            >{$t('Source distance unit')}<select bind:value={distanceUnit}
+              >{#each ['km', 'mi'] as unit (unit)}<option>{unit}</option
+                >{/each}</select
+            ></label
+          >
+          <label
+            >{$t('Source fuel unit')}<select bind:value={fuelUnit}
+              >{#each ['L', 'US gal', 'Imp gal'] as unit (unit)}<option
+                  >{unit}</option
+                >{/each}</select
+            ></label
+          >
+          {#if kind !== 'fuel'}<label
+              >{$t('Default category')}<select bind:value={defaultCategory}
+                >{#each ['repair', 'service', 'tyres', 'inspection', 'parts', 'purchase', 'insurance', 'tax', 'lease', 'parking', 'toll', 'other'] as category (category)}<option
+                    value={category}>{$t(category)}</option
+                  >{/each}</select
+              ></label
+            >{/if}
+        </div>
+        <p class="muted">
+          {$t(
+            'Source currency: {currency}. Amounts are not converted between currencies.',
+            { currency: $data!.state.settings.currency }
+          )}
+        </p>
+      </details>
       {#if inspection.error}<p class="error" role="alert">
           {$feedback(inspection.error)}
         </p>{:else}
+        {#snippet mappingFields(fields: string[])}
+          <div class="mapping-fields">
+            {#each fields as field (field)}
+              <div
+                class="mapping-target"
+                data-field={field}
+                role="group"
+                aria-label={$t(names[field])}
+                ondragover={(e) => e.preventDefault()}
+                ondrop={(e) => dropColumn(e, field)}
+              >
+                <button
+                  class="mapping-label"
+                  disabled={activeColumn === null}
+                  aria-label={$t('Map {field}', { field: $t(names[field]) })}
+                  onclick={() => {
+                    if (activeColumn !== null) {
+                      mappings[field] = activeColumn;
+                      activeColumn = null;
+                    }
+                  }}
+                >
+                  {$t(names[field])}
+                </button>
+                <select
+                  aria-label={$t(names[field]) + ' ' + $t('column')}
+                  value={mappings[field] ?? -1}
+                  onchange={(e) =>
+                    (mappings[field] = Number(e.currentTarget.value))}
+                >
+                  <option value={-1}
+                    >{$t('Not mapped · preserve source')}</option
+                  >
+                  {#each headers as header, i (i)}<option value={i}
+                      >{i + 1}: {header || $t('(unnamed)')}</option
+                    >{/each}
+                </select>
+                {#if (mappings[field] ?? -1) >= 0}
+                  <button
+                    class="clear-mapping"
+                    onclick={() => (mappings[field] = -1)}
+                    aria-label={$t('Clear {field}', {
+                      field: $t(names[field])
+                    })}
+                    title={$t('Clear mapping')}
+                    ><span aria-hidden="true">×</span></button
+                  >
+                {:else}<span aria-hidden="true"></span>{/if}
+              </div>
+            {/each}
+          </div>
+        {/snippet}
         <h3>{$t('Source columns')}</h3>
-        <p class="muted">
-          {$t(
-            'Drag a column onto a field, or select a column and choose its field. Dropdowns also work with touch and keyboard.'
-          )}
+        <p class="muted mapping-hint">
+          {$t('Select a column to see example values.')}
         </p>
         <div class="source-columns">
           {#each headers as header, i (i)}
@@ -411,6 +486,7 @@
                 number: i + 1,
                 header: header || $t('(unnamed)')
               })}
+              title={header || $t('(unnamed)')}
               aria-pressed={activeColumn === i}
               onclick={() => (activeColumn = activeColumn === i ? null : i)}
               ondragstart={(e) => {
@@ -418,69 +494,55 @@
                   'application/x-roadbook-column',
                   String(i)
                 );
-                activeColumn = i;
+                // Keep the preview strip stable during dragging; only clicks
+                // change the selected column and its example values.
               }}
             >
               <strong>{i + 1}: {header || $t('(unnamed)')}</strong>
-              {#each examples as sample (sample.source_row)}<span
-                  >{inspection.cells[sample.source_row - 1]?.[i] || '—'}</span
-                >{/each}
             </button>
           {/each}
         </div>
-        {#each groups as group (group.name)}
-          <fieldset class="mapping-group">
-            <legend>{$t(group.name)}</legend>
-            <div class="mapping-fields">
-              {#each group.fields as field (field)}
-                <div
-                  class="mapping-target"
-                  data-field={field}
-                  role="group"
-                  aria-label={$t(names[field])}
-                  ondragover={(e) => e.preventDefault()}
-                  ondrop={(e) => dropColumn(e, field)}
+        {#if activeColumn !== null}
+          <div
+            class="column-samples"
+            role="region"
+            aria-label={$t('Column examples')}
+          >
+            <strong
+              >{activeColumn + 1}: {headers[activeColumn] ||
+                $t('(unnamed)')}</strong
+            >
+            <div class="sample-values">
+              {#each examples as sample (sample.source_row)}
+                {@const value =
+                  inspection.cells[sample.source_row - 1]?.[activeColumn] ||
+                  '—'}
+                <span
+                  ><small>{$t('Source row')} {sample.source_row}</small><code
+                    title={value}>{value}</code
+                  ></span
                 >
-                  <button
-                    class="secondary"
-                    disabled={activeColumn === null}
-                    aria-label={$t('Map {field}', { field: $t(names[field]) })}
-                    onclick={() => {
-                      if (activeColumn !== null) {
-                        mappings[field] = activeColumn;
-                        activeColumn = null;
-                      }
-                    }}>{$t(names[field])}</button
-                  >
-                  <label
-                    >{$t(names[field])}
-                    {$t('column')}
-                    <select
-                      value={mappings[field] ?? -1}
-                      onchange={(e) =>
-                        (mappings[field] = Number(e.currentTarget.value))}
-                    >
-                      <option value="-1"
-                        >{$t('Not mapped · preserve source')}</option
-                      >
-                      {#each headers as header, i (i)}<option value={i}
-                          >{i + 1}: {header || $t('(unnamed)')}</option
-                        >{/each}
-                    </select>
-                  </label>
-                  {#if (mappings[field] ?? -1) >= 0}<button
-                      class="text-button"
-                      onclick={() => {
-                        mappings[field] = -1;
-                      }}
-                      aria-label={$t('Clear {field}', {
-                        field: $t(names[field])
-                      })}>{$t('Clear mapping')}</button
-                    >{/if}
-                </div>
               {/each}
+              {#if !examples.length}<small
+                  >{$t('No source rows in this range.')}</small
+                >{/if}
             </div>
-          </fieldset>
+          </div>
+        {/if}
+        {#each groups as group (group.name)}
+          {#if group.name === 'Optional details'}
+            <details class="mapping-optional">
+              <summary>{$t(group.name)}</summary>{@render mappingFields(
+                group.fields
+              )}
+            </details>
+          {:else}
+            <fieldset class="mapping-group">
+              <legend>{$t(group.name)}</legend>{@render mappingFields(
+                group.fields
+              )}
+            </fieldset>
+          {/if}
         {/each}
         <h3>{$t('Live examples')}</h3>
         <p class="muted">

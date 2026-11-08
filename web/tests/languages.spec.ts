@@ -151,6 +151,7 @@ test('German import review translates feedback and preserves source parsing and 
       'Date;Amount;Note\n03.02.2026;1234,56;Original English description\n04.02.2026;invalid;Keep original source'
     )
   });
+  await page.locator('.import-format > summary').click();
   await page
     .getByRole('combobox', { name: 'Trennzeichen', exact: true })
     .selectOption(';');
@@ -166,6 +167,7 @@ test('German import review translates feedback and preserves source parsing and 
   await page
     .getByRole('combobox', { name: 'Gezahlter Betrag Spalte', exact: true })
     .selectOption('1');
+  await page.locator('.mapping-optional > summary').click();
   await page
     .getByRole('combobox', { name: 'Beschreibung Spalte', exact: true })
     .selectOption('2');

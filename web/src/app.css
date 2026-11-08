@@ -310,59 +310,167 @@ dialog::backdrop {
   padding: 1rem;
   margin-bottom: 1.25rem;
 }
-.source-columns,
-.mapping-fields,
 .example-entries {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr));
   gap: 0.8rem;
 }
-.source-column {
+.source-columns {
   display: flex;
-  align-items: stretch;
-  flex-direction: column;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+.source-column {
+  min-width: 0;
+  max-width: 100%;
+  padding: 0.45rem 0.7rem;
   text-align: left;
   cursor: grab;
-  min-width: 0;
 }
-.source-column span,
 .source-column strong {
-  overflow-wrap: anywhere;
-}
-.source-column span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 16rem;
   font-size: 0.85rem;
-  font-weight: normal;
 }
 .source-column.chosen {
-  outline: 3px solid var(--ts-focus);
+  outline: 2px solid var(--ts-focus);
   outline-offset: 2px;
 }
+.mapping-hint {
+  font-size: 0.85rem;
+  margin: 0.5rem 0;
+}
+.column-samples {
+  padding: 0.6rem 0.75rem;
+  margin-top: 0.6rem;
+  border: 1px solid var(--ts-border);
+  border-radius: 8px;
+  background: var(--ts-surface-subtle);
+  min-width: 0;
+}
+.column-samples > strong {
+  display: block;
+  font-size: 0.85rem;
+  overflow-wrap: anywhere;
+}
+.sample-values {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem 1.5rem;
+  margin-top: 0.3rem;
+}
+.sample-values > span {
+  min-width: 0;
+  flex: 1 1 120px;
+}
+.sample-values small {
+  display: block;
+  font-size: 0.75rem;
+}
+.sample-values code {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  font-size: 0.85rem;
+}
 .mapping-group {
-  margin: 1.25rem 0;
-  padding: 1rem;
+  margin: 0.8rem 0;
+  padding: 0.4rem 0.5rem;
   min-width: 0;
 }
 .mapping-group legend {
   font-weight: 600;
+  font-size: 0.85rem;
   padding: 0 0.4rem;
 }
-.mapping-target {
-  min-width: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-  border: 1px dashed var(--ts-border);
-  border-radius: 8px;
-  padding: 0.75rem;
+.mapping-fields {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 340px), 1fr));
+  gap: 0.35rem 0.8rem;
 }
-.mapping-target label {
+.mapping-target {
+  display: grid;
+  grid-template-columns: minmax(90px, 0.7fr) minmax(0, 1fr) 36px;
+  align-items: center;
+  gap: 0.35rem;
   min-width: 0;
+  border-bottom: 1px dashed var(--ts-border);
+  padding: 0.2rem 0;
 }
 .mapping-target select {
   max-width: 100%;
+  min-width: 0;
+  font-size: 0.85rem;
 }
-.mapping-target button:disabled {
+.mapping-label {
+  background: transparent;
+  color: var(--ts-text);
+  padding: 0.3rem 0.4rem;
+  font-size: 0.85rem;
+  justify-content: flex-start;
+  text-align: left;
+  overflow-wrap: anywhere;
+}
+.mapping-label:disabled {
+  opacity: 1;
   cursor: default;
+}
+.mapping-label:not(:disabled) {
+  background: var(--ts-selection);
+  color: var(--ts-on-selection);
+}
+.clear-mapping {
+  padding: 0;
+  min-width: 36px;
+  background: transparent;
+  color: var(--ts-muted);
+  font-size: 1.4rem;
+}
+.import-format,
+.mapping-optional {
+  margin: 0.85rem 0;
+  min-width: 0;
+  border: 1px solid var(--ts-border);
+  border-radius: 8px;
+  padding: 0.6rem 0.75rem;
+}
+.import-format > summary,
+.mapping-optional > summary {
+  cursor: pointer;
+  min-height: 32px;
+  font-size: 0.9rem;
+}
+.import-format > summary > span {
+  font-weight: 600;
+}
+.import-format > summary small {
+  margin-left: 0.75rem;
+  font-size: 0.8rem;
+}
+.import-format[open] > summary,
+.mapping-optional[open] > summary {
+  margin-bottom: 0.75rem;
+}
+@media (max-width: 600px) {
+  .mapping-target {
+    grid-template-columns: minmax(80px, 0.65fr) minmax(0, 1fr) 44px;
+  }
+  .clear-mapping {
+    min-width: 44px;
+  }
+  .import-format > summary,
+  .mapping-optional > summary {
+    min-height: 44px;
+  }
+  .import-format > summary small {
+    display: block;
+    margin: 0.35rem 0 0;
+  }
 }
 .import-example {
   min-width: 0;

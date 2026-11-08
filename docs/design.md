@@ -124,8 +124,11 @@ status remains unknown; import assumptions are visible in the fill-type control.
 
 The v1 guided import workspace lives at Settings → Import (`/settings#import`).
 An empty-history banner links there until the first fuel or expense record exists.
-Read dropped/selected CSV files in the browser, show source headers with two sample
-cells, and map through drag, click or accessible dropdowns. Explicit source formats
+Read dropped/selected CSV files in the browser, show compact source-header chips
+with two raw examples for the selected column, and map through drag, click or
+accessible dropdowns. Destination fields use compact rows; optional details and
+format settings start collapsed with an interpretation summary. A short hint
+explains that selecting a chip reveals example values. Explicit source formats
 and units drive two unsaved examples using the shared history-entry presentation.
 No source is sent until server review is requested; interpretation/context changes
 invalidate review. See [workspace design](superpowers/specs/2026-11-08-import-workspace-design.md).
