@@ -54,6 +54,9 @@ The app includes passwordless profiles, per-vehicle sharing, manual fuel and
 expense records, recurring charges, persistent original images and thumbnails,
 reviewed CSV imports, JSON export, monthly spending and annual-distance charts.
 Unknown fuel data is highlighted and excluded from unreliable consumption ratios.
+English and German are available under Settings → Language, with a per-browser
+preference. Dates and amounts follow the selected language; CSV formats remain
+explicit. See [language support](docs/i18n.md).
 Vision-bill integration is planned separately for v1.1.
 
 ## Run and verify

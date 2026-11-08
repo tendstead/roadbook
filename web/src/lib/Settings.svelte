@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { translator as t, feedback, language, setLanguage } from './i18n';
   import {
     data,
     chooseVehicle,
@@ -11,7 +12,7 @@
     type Schedule
   } from './api';
   import { scaled, display, minor, moneyInput } from './units';
-  import { money } from './format';
+  import { formatters as fmt } from './format';
   import Importer from './Importer.svelte';
   let form = $state<Vehicle>({
     id: '',
@@ -157,102 +158,122 @@
   }
 </script>
 
+<section class="panel">
+  <h2>{$t('Language')}</h2>
+  <label
+    >{$t('Language')}<select
+      value={$language}
+      onchange={(e) => setLanguage(e.currentTarget.value as 'en' | 'de')}
+      ><option value="en" lang="en">English</option><option value="de" lang="de"
+        >Deutsch</option
+      ></select
+    ></label
+  >
+  <small>{$t('Saved in this browser only.')}</small>
+</section>
 {#if $data && configuration}
   <p class="muted">
-    Private installation. Profiles organize vehicles; anyone with access can
-    switch profiles.
+    {$t(
+      'Private installation. Profiles organize vehicles; anyone with access can switch profiles.'
+    )}
   </p>
-  {#if error}<p class="error" role="alert">{error}</p>{/if}{#if notice}<p
-      class="notice"
-      role="status"
-    >
-      {notice}
+  {#if error}<p class="error" role="alert">
+      {$feedback(error)}
+    </p>{/if}{#if notice}<p class="notice" role="status">
+      {$feedback(notice)}
     </p>{/if}
   <form class="panel" onsubmit={saveVehicle}>
     <h2>
       {form.id
-        ? 'Edit vehicle'
+        ? $t('Edit vehicle')
         : $data.state.vehicles.length
-          ? 'Add another vehicle'
-          : 'Your first vehicle'}
+          ? $t('Add another vehicle')
+          : $t('Your first vehicle')}
     </h2>
     <div class="grid">
       <label
-        >Vehicle name<input
+        >{$t('Vehicle name')}<input
           bind:value={form.name}
           required
           maxlength="120"
-          placeholder="e.g. Our Golf"
+          placeholder={$t('e.g. Our Golf')}
         /></label
       >
       <label
-        >Vehicle type<select bind:value={form.kind}
-          ><option value="car">Car</option><option value="motorbike"
-            >Motorbike</option
-          ><option value="other">Other</option></select
+        >{$t('Vehicle type')}<select bind:value={form.kind}
+          ><option value="car">{$t('Car')}</option><option value="motorbike"
+            >{$t('Motorbike')}</option
+          ><option value="other">{$t('Other')}</option></select
         ></label
       >
       <label
-        >Fuel type<input
+        >{$t('Fuel type')}<input
           bind:value={form.fuel_type}
-          placeholder="e.g. Super E10"
+          placeholder={$t('e.g. Super E10')}
         /></label
       >
       <label
-        >Ownership start<input
+        >{$t('Ownership start')}<input
           type="date"
           bind:value={form.ownership_start}
-        /><small>Optional · needed for the monthly upkeep average</small></label
+        /><small>{$t('Optional · needed for the monthly upkeep average')}</small
+        ></label
       >
       <label
-        >Ownership end<input
+        >{$t('Ownership end')}<input
           type="date"
           bind:value={form.ownership_end}
-        /><small>Optional · keep historical records after sale</small></label
+        /><small>{$t('Optional · keep historical records after sale')}</small
+        ></label
       >
       <label
-        >Initial odometer<input
+        >{$t('Initial odometer')}<input
           inputmode="decimal"
           bind:value={odometer}
         /><small
-          >{$data.state.settings.distance_unit} · optional baseline before your first
-          fill</small
+          >{$data.state.settings.distance_unit}
+          {$t('· optional baseline before your first fill')}</small
         ></label
       >
       {#if !form.id}<label
-          >Purchase price<input
+          >{$t('Purchase price')}<input
             inputmode="decimal"
             bind:value={purchase}
-          /><small>Optional · creates one purchase expense</small></label
+          /><small>{$t('Optional · creates one purchase expense')}</small
+          ></label
         >{/if}
     </div>
     {#if $data.state.profiles.length > 1}<fieldset>
-        <legend>Share this vehicle with</legend
+        <legend>{$t('Share this vehicle with')}</legend
         >{#each $data.state.profiles as p (p.id)}<label class="checkbox"
             ><input
               type="checkbox"
               value={p.id}
               bind:group={form.members}
               disabled={p.id === $data.profile_id}
-            />{p.name}{p.id === $data.profile_id ? ' (owner)' : ''}</label
+            />{p.name}{p.id === $data.profile_id
+              ? $t(' (owner)')
+              : $t('')}</label
           >{/each}
       </fieldset>{/if}
     <div class="row">
-      <button disabled={busy}>{form.id ? 'Save vehicle' : 'Add vehicle'}</button
+      <button disabled={busy}
+        >{form.id ? $t('Save vehicle') : $t('Add vehicle')}</button
       >{#if form.id}<button
           type="button"
           class="secondary"
-          onclick={resetVehicle}>Cancel</button
+          onclick={resetVehicle}>{$t('Cancel')}</button
         >{/if}
     </div>
   </form>
   <section class="panel">
-    <h2>Your vehicles</h2>
+    <h2>{$t('Your vehicles')}</h2>
     {#each $data.state.vehicles as v (v.id)}<div class="recent">
         <span
-          >{v.name}{v.ownership_end ? ' · Archived' : ''}{v.members.length > 1
-            ? ' · Shared'
-            : ''}</span
+          >{v.name}{v.ownership_end ? $t(' · Archived') : $t('')}{v.members
+            .length > 1
+            ? $t(' · Shared')
+            : $t('')}</span
         >{#if v.owner_id === $data.profile_id}<button
             class="secondary"
             onclick={() => {
@@ -263,30 +284,30 @@
               );
               originalOdometer = odometer;
               editingDistanceUnit = $data!.state.settings.distance_unit;
-              notice = '';
-            }}>Edit vehicle</button
+              notice = $t('');
+            }}>{$t('Edit vehicle')}</button
           >{/if}
-      </div>{:else}<p class="muted">No vehicles yet.</p>{/each}
+      </div>{:else}<p class="muted">{$t('No vehicles yet.')}</p>{/each}
   </section>
   <form class="panel" onsubmit={saveSettings}>
-    <h2>Units & locale</h2>
+    <h2>{$t('Units & locale')}</h2>
     <div class="grid">
       <label
-        >Distance unit<select bind:value={configuration.distance_unit}
-          ><option value="km">Kilometres</option><option value="mi"
-            >Miles</option
+        >{$t('Distance unit')}<select bind:value={configuration.distance_unit}
+          ><option value="km">{$t('Kilometres')}</option><option value="mi"
+            >{$t('Miles')}</option
           ></select
         ></label
       >
       <label
-        >Fuel unit<select bind:value={configuration.fuel_unit}
-          ><option value="L">Litres</option><option value="US gal"
-            >US gallons</option
-          ><option value="Imp gal">Imperial gallons</option></select
+        >{$t('Fuel unit')}<select bind:value={configuration.fuel_unit}
+          ><option value="L">{$t('Litres')}</option><option value="US gal"
+            >{$t('US gallons')}</option
+          ><option value="Imp gal">{$t('Imperial gallons')}</option></select
         ></label
       >
       <label
-        >Currency<select
+        >{$t('Currency')}<select
           bind:value={configuration.currency}
           disabled={$data.state.records.length > 0 ||
             $data.state.schedules.length > 0}
@@ -296,89 +317,104 @@
         ></label
       >
       <label
-        >Timezone<input bind:value={configuration.timezone} required /></label
+        >{$t('Timezone')}<input
+          bind:value={configuration.timezone}
+          required
+        /></label
       >
     </div>
     <small
-      >Unit changes convert measurements. Currency cannot change after records
-      exist.</small
-    ><button>Save settings</button>
+      >{$t(
+        'Unit changes convert measurements. Currency cannot change after records exist.'
+      )}</small
+    ><button>{$t('Save settings')}</button>
   </form>
   <section class="panel">
-    <h2>Profiles</h2>
+    <h2>{$t('Profiles')}</h2>
     <p class="muted">
-      Add another person to enable profile switching, vehicle sharing and payer
-      selection.
+      {$t(
+        'Add another person to enable profile switching, vehicle sharing and payer selection.'
+      )}
     </p>
     <ul>
       {#each $data.state.profiles as p (p.id)}<li>{p.name}</li>{/each}
     </ul>
     <form onsubmit={addProfile}>
       <label
-        >New profile name<input
+        >{$t('New profile name')}<input
           bind:value={profileName}
           required
           maxlength="120"
         /></label
-      ><button>Add profile</button>
+      ><button>{$t('Add profile')}</button>
     </form>
   </section>
   <section class="panel">
-    <h2>Recurring expenses</h2>
+    <h2>{$t('Recurring expenses')}</h2>
     <p class="muted">
-      Add a repeating expense under Costs & upkeep. Due charges count
-      automatically. Editing changes future charges; existing charges stay
-      recorded.
+      {$t(
+        'Add a repeating expense under Costs & upkeep. Due charges count automatically. Editing changes future charges; existing charges stay recorded.'
+      )}
     </p>
     {#each $data.state.schedules as s (s.id)}<form
         class="schedule"
         onsubmit={(e) => editSchedule(e, s)}
       >
         <h3>
-          {s.template.description || s.template.category} · every {s.months} month(s)
+          {s.template.description || $t(s.template.category)}
+          {$t('· every')}
+          {s.months}
+          {$t('month(s)')}
         </h3>
         <p>
-          {money(s.template.amount_minor || 0, $data.state.settings.currency)} · first
-          due {s.first}
+          {$fmt.money(
+            s.template.amount_minor || 0,
+            $data.state.settings.currency
+          )}
+          {$t('· first due')}
+          {$fmt.date(s.first)}
         </p>
         <div class="grid">
           <label
-            >Future amount<input
+            >{$t('Future amount')}<input
               name="amount"
               value={moneyInput(s.template.amount_minor)}
               required
               inputmode="decimal"
             /></label
           ><label
-            >Last due date<input type="date" name="end" value={s.end} /></label
+            >{$t('Last due date')}<input
+              type="date"
+              name="end"
+              value={s.end}
+            /></label
           >
         </div>
         <label class="checkbox"
-          ><input
-            type="checkbox"
-            name="active"
-            checked={s.active}
-          />Active</label
-        ><button class="secondary">Update schedule</button>
-      </form>{:else}<p class="muted">No recurring expenses.</p>{/each}
+          ><input type="checkbox" name="active" checked={s.active} />{$t(
+            'Active'
+          )}</label
+        ><button class="secondary">{$t('Update schedule')}</button>
+      </form>{:else}<p class="muted">{$t('No recurring expenses.')}</p>{/each}
   </section>
   <Importer />
   <section class="panel">
-    <h2>Export & recovery</h2>
+    <h2>{$t('Export & recovery')}</h2>
     <p>
-      Export includes all profiles, canonical record values and attachment
-      metadata. Original images need a file backup too.
+      {$t(
+        'Export includes all profiles, canonical record values and attachment metadata. Original images need a file backup too.'
+      )}
     </p>
-    <button onclick={exportData}>Export records</button>
+    <button onclick={exportData}>{$t('Export records')}</button>
   </section>
   <section class="panel">
-    <h2>About Roadbook</h2>
-    <p>Source-available under Elastic License 2.0.</p>
+    <h2>{$t('About Roadbook')}</h2>
+    <p>{$t('Source-available under Elastic License 2.0.')}</p>
     <div class="row">
-      <a href="/license.txt" rel="external">License</a><a
+      <a href="/license.txt" rel="external">{$t('License')}</a><a
         href="/third-party-notices.txt"
-        rel="external">Third-party notices</a
+        rel="external">{$t('Third-party notices')}</a
       >
     </div>
   </section>
-{:else}<p class="muted">Loading settings…</p>{/if}
+{:else}<p class="muted">{$t('Loading settings…')}</p>{/if}

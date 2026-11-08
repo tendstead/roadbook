@@ -1,4 +1,6 @@
 <script lang="ts">
+  import { formatters as fmt } from './format';
+  import { translator as t } from './i18n';
   let {
     title,
     series,
@@ -39,17 +41,19 @@
   <h2>{title}</h2>
   {#if labels.length}
     <svg viewBox="0 0 670 225" role="img" aria-label={title}>
-      <title>{title}. Exact values are available in the table below.</title>
+      <title
+        >{title}{$t('. Exact values are available in the table below.')}</title
+      >
       <path d="M45 25V180H635" stroke="var(--ts-border)" fill="none" />
       <text x="0" y="32" font-size="11" fill="currentColor"
-        >{max.toFixed(0)}</text
+        >{$fmt.number(max)}</text
       >
       {#each labels as label, index (label)}{#if index % Math.max(1, Math.ceil(labels.length / 6)) === 0 || index === labels.length - 1}<text
             x={x(label)}
             y="205"
             text-anchor="middle"
             font-size="11"
-            fill="currentColor">{label}</text
+            fill="currentColor">{$fmt.period(label)}</text
           >{/if}{/each}
       {#each series as s, seriesIndex (seriesIndex)}
         {#if !bars}<polyline
@@ -67,13 +71,17 @@
               height={Math.max(0, 180 - y(v.value))}
               rx="3"
               fill={s.color}
-              ><title>{v.label}: {v.value.toFixed(2)} {unit}</title></rect
+              ><title
+                >{$fmt.period(v.label)}: {$fmt.number(v.value, 2)} {unit}</title
+              ></rect
             >{:else}<circle
               cx={x(v.label)}
               cy={y(v.value)}
               r="4.5"
               fill={s.color}
-              ><title>{s.name}, {v.label}: {v.value.toFixed(2)} {unit}</title
+              ><title
+                >{s.name}, {$fmt.period(v.label)}: {$fmt.number(v.value, 2)}
+                {unit}</title
               ></circle
             >{/if}{/each}
       {/each}
@@ -84,27 +92,31 @@
           >{/each}
       </div>{/if}
     <details>
-      <summary>View values · {unit}</summary>
+      <summary>{$t('View values ·')} {unit}</summary>
       <div class="scroll">
         <table>
           <thead
             ><tr
-              ><th>Period</th>{#each series as s, seriesIndex (seriesIndex)}<th
+              ><th>{$t('Period')}</th
+              >{#each series as s, seriesIndex (seriesIndex)}<th
                   ><span style:color={s.color}>●</span> {s.name}</th
                 >{/each}</tr
             ></thead
           ><tbody
             >{#each labels as label (label)}<tr
-                ><th>{label}</th
+                ><th>{$fmt.period(label)}</th
                 >{#each series as s, seriesIndex (seriesIndex)}<td
-                    >{s.values
-                      .find((v) => v.label === label)
-                      ?.value.toFixed(2) ?? 'No recorded distance'}</td
+                    >{s.values.find((v) => v.label === label)
+                      ? $fmt.number(
+                          s.values.find((v) => v.label === label)!.value,
+                          2
+                        )
+                      : $t('No recorded distance')}</td
                   >{/each}</tr
               >{/each}</tbody
           >
         </table>
       </div>
     </details>
-  {:else}<p class="muted">No recorded data yet.</p>{/if}
+  {:else}<p class="muted">{$t('No recorded data yet.')}</p>{/if}
 </section>

@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { translator as t, feedback } from './i18n';
   import { untrack } from 'svelte';
   import { data, blank, request, reload, message, type Entry } from './api';
   import { scaled, display, minor, moneyInput } from './units';
@@ -99,22 +100,24 @@
 <form class="panel" onsubmit={save}>
   <h2>
     {draft.id
-      ? 'Edit'
+      ? $t('Edit')
       : draft.kind === 'fuel'
-        ? 'New fuel stop'
-        : 'New expense'}
+        ? $t('New fuel stop')
+        : $t('New expense')}
   </h2>
-  {#if error}<p class="error" role="alert">{error}</p>{/if}
+  {#if error}<p class="error" role="alert">{$feedback(error)}</p>{/if}
   <div class="grid">
     <label
-      >Vehicle<select bind:value={draft.vehicle_id} disabled={!!draft.id}
+      >{$t('Vehicle')}<select
+        bind:value={draft.vehicle_id}
+        disabled={!!draft.id}
         >{#each $data!.state.vehicles as v (v.id)}<option value={v.id}
             >{v.name}</option
           >{/each}</select
       ></label
     >
     <label
-      >Date<input
+      >{$t('Date')}<input
         type="date"
         bind:value={draft.date}
         required
@@ -122,76 +125,82 @@
       /></label
     >
     {#if $data!.state.profiles.length > 1}<label
-        >Paid by<select bind:value={draft.payer_id}
+        >{$t('Paid by')}<select bind:value={draft.payer_id}
           >{#each $data!.state.profiles as p (p.id)}<option value={p.id}
               >{p.name}</option
             >{/each}</select
         ></label
       >{/if}
     <label
-      >{draft.kind === 'fuel' ? 'Total paid' : 'Amount'}<input
+      >{draft.kind === 'fuel' ? $t('Total paid') : $t('Amount')}<input
         inputmode="decimal"
         bind:value={amount}
-        placeholder={draft.kind === 'fuel' ? 'Unknown allowed' : '0.00'}
+        placeholder={draft.kind === 'fuel' ? $t('Unknown allowed') : '0.00'}
         required={draft.kind !== 'fuel'}
       /><small>{settings.currency}</small></label
     >
     {#if draft.kind === 'fuel'}
       <label
-        >Volume<input
+        >{$t('Volume')}<input
           inputmode="decimal"
           bind:value={volume}
-          placeholder="Unknown allowed"
+          placeholder={$t('Unknown allowed')}
         /><small>{settings.fuel_unit}</small></label
       >
       <label
-        >Distance driven<input
+        >{$t('Distance driven')}<input
           inputmode="decimal"
           bind:value={distance}
-          placeholder="Since the preceding fill"
+          placeholder={$t('Since the preceding fill')}
         /><small
-          >{settings.distance_unit} · Takes precedence over odometer difference</small
+          >{settings.distance_unit}
+          {$t('· Takes precedence over odometer difference')}</small
         ></label
       >
       <label
-        >Tank status<select bind:value={draft.tank}
-          ><option value="unknown">Unknown</option><option value="full"
-            >Full</option
-          ><option value="partial">Partial</option></select
+        >{$t('Tank status')}<select bind:value={draft.tank}
+          ><option value="unknown">{$t('Unknown')}</option><option value="full"
+            >{$t('Full')}</option
+          ><option value="partial">{$t('Partial')}</option></select
         ></label
       >
-      <label>Station<input bind:value={draft.station} maxlength="200" /></label>
       <label
-        >Fuel type<input
+        >{$t('Station')}<input
+          bind:value={draft.station}
+          maxlength="200"
+        /></label
+      >
+      <label
+        >{$t('Fuel type')}<input
           bind:value={draft.fuel_type}
-          placeholder="e.g. Super E10"
+          placeholder={$t('e.g. Super E10')}
         /></label
       >
     {:else}
       <label
-        >Category<select bind:value={draft.category}
+        >{$t('Category')}<select bind:value={draft.category}
           >{#each ['repair', 'service', 'tyres', 'inspection', 'parts', 'purchase', 'insurance', 'tax', 'lease', 'parking', 'toll', 'other'] as category (category)}<option
-              value={category}>{category}</option
+              value={category}>{$t(category)}</option
             >{/each}</select
         ></label
       >
       <label
-        >Description<input
+        >{$t('Description')}<input
           bind:value={draft.description}
           maxlength="1000"
         /></label
       >
       {#if !draft.id}<label
-          >Repeat<select bind:value={months}
-            ><option value="0">One time</option><option value="1"
-              >Monthly</option
-            ><option value="3">Quarterly</option><option value="12"
-              >Annually</option
+          >{$t('Repeat')}<select bind:value={months}
+            ><option value="0">{$t('One time')}</option><option value="1"
+              >{$t('Monthly')}</option
+            ><option value="3">{$t('Quarterly')}</option><option value="12"
+              >{$t('Annually')}</option
             ></select
           ></label
         >
         {#if months !== '0'}<label
-            >Last due date (optional)<input
+            >{$t('Last due date (optional)')}<input
               type="date"
               bind:value={end}
             /></label
@@ -199,24 +208,24 @@
       {/if}
     {/if}
     <label
-      >Odometer<input
+      >{$t('Odometer')}<input
         inputmode="decimal"
         bind:value={odometer}
-        placeholder="Optional"
+        placeholder={$t('Optional')}
       /><small>{settings.distance_unit}</small></label
     >
   </div>
   {#if draft.kind === 'fuel'}<label class="checkbox"
-      ><input type="checkbox" bind:checked={draft.gap} /> Missing fuel record or odometer
-      reset before this entry</label
+      ><input type="checkbox" bind:checked={draft.gap} />
+      {$t('Missing fuel record or odometer reset before this entry')}</label
     >{/if}
   <label
-    >Notes<textarea bind:value={draft.notes} rows="2" maxlength="20000"
+    >{$t('Notes')}<textarea bind:value={draft.notes} rows="2" maxlength="20000"
     ></textarea></label
   >
   {#if months === '0'}<div class="grid">
       <label
-        >Dashboard photos<input
+        >{$t('Dashboard photos')}<input
           type="file"
           accept="image/jpeg,image/png,image/webp"
           multiple
@@ -225,7 +234,7 @@
         /></label
       >
       <label
-        >Receipts or bills<input
+        >{$t('Receipts or bills')}<input
           type="file"
           accept="image/jpeg,image/png,image/webp"
           multiple
@@ -233,17 +242,20 @@
         /></label
       >
     </div>
-    <small>Originals are retained. JPEG, PNG or WebP; up to 20 MiB each.</small
+    <small
+      >{$t(
+        'Originals are retained. JPEG, PNG or WebP; up to 20 MiB each.'
+      )}</small
     >{/if}
   <div class="row">
     <button disabled={busy}
       >{busy
-        ? 'Saving…'
+        ? $t('Saving…')
         : draft.kind === 'fuel'
-          ? 'Save fuel'
-          : 'Save expense'}</button
+          ? $t('Save fuel')
+          : $t('Save expense')}</button
     ><button type="button" class="secondary" disabled={busy} onclick={onSaved}
-      >Cancel</button
+      >{$t('Cancel')}</button
     >
   </div>
 </form>

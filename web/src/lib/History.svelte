@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { translator as t, feedback } from './i18n';
   import { page } from '$app/state';
   import {
     data,
@@ -9,8 +10,7 @@
     message,
     type Entry
   } from './api';
-  import { display } from './units';
-  import { money } from './format';
+  import { formatters as fmt } from './format';
   import EntryForm from './EntryForm.svelte';
   import Attachments from './Attachments.svelte';
   let { kind }: { kind: string } = $props();
@@ -61,44 +61,46 @@
 
 {#if $data}
   {#if !$data.state.vehicles.length}<section class="empty">
-      <h2>Add your first vehicle</h2>
-      <p>Open Settings to start your vehicle history.</p>
+      <h2>{$t('Add your first vehicle')}</h2>
+      <p>{$t('Open Settings to start your vehicle history.')}</p>
     </section>
   {:else}
     <div class="toolbar">
       <p class="muted">
         {records.length}
-        {kind === 'fuel' ? 'fuel stops' : 'expenses'} · {$data.state.vehicles.find(
+        {kind === 'fuel' ? $t('fuel stops') : $t('expenses')} · {$data.state.vehicles.find(
           (v) => v.id === $selectedVehicle
         )?.name}
       </p>
       <button
         onclick={() => {
           editing = blank(kind);
-          notice = '';
-        }}>{kind === 'fuel' ? 'New fuel stop' : 'New expense'}</button
+          notice = $t('');
+        }}>{kind === 'fuel' ? $t('New fuel stop') : $t('New expense')}</button
       >
     </div>
-    {#if notice}<p class="notice" role="status">{notice}</p>{/if}{#if error}<p
-        class="error"
-        role="alert"
-      >
-        {error}
+    {#if notice}<p class="notice" role="status">
+        {$feedback(notice)}
+      </p>{/if}{#if error}<p class="error" role="alert">
+        {$feedback(error)}
       </p>{/if}
     {#if editing}{#key editing.id}<EntryForm
           entry={editing}
           onSaved={saved}
         />{/key}{/if}
     <div class="row filters">
-      <label>From<input type="date" bind:value={from} /></label><label
-        >Through<input type="date" bind:value={to} /></label
+      <label>{$t('From')}<input type="date" bind:value={from} /></label><label
+        >{$t('Through')}<input type="date" bind:value={to} /></label
       >
     </div>
     {#if !records.length}<section class="empty">
-        <h2>A fresh page</h2>
+        <h2>{$t('A fresh page')}</h2>
         <p>
-          Add your first {kind === 'fuel' ? 'fuel stop' : 'expense'}, or import
-          existing records in Settings.
+          {$t(
+            kind === 'fuel'
+              ? 'Add your first fuel stop, or import existing records in Settings.'
+              : 'Add your first expense, or import existing records in Settings.'
+          )}
         </p>
       </section>{/if}
     {#each records as entry (entry.id)}
@@ -106,52 +108,61 @@
         <div class="toolbar">
           <div>
             <small
-              >{entry.date}{#if entry.schedule_id}
-                · Recurring{/if}</small
+              >{$fmt.date(entry.date)}{#if entry.schedule_id}{$t(
+                  '· Recurring'
+                )}{/if}</small
             >
             <h3>
               {kind === 'fuel'
-                ? entry.station || 'Fuel stop'
-                : entry.description || entry.category}
+                ? entry.station || $t('Fuel stop')
+                : entry.description || $t(entry.category)}
             </h3>
           </div>
           <strong
             >{entry.amount_minor === null
-              ? 'Amount unknown'
-              : money(
+              ? $t('Amount unknown')
+              : $fmt.money(
                   entry.amount_minor,
                   $data.state.settings.currency
                 )}</strong
           >
         </div>
         {#if kind === 'fuel'}<p>
-            {display(entry.volume_ml, $data.state.settings.fuel_unit) ||
-              'Volume unknown'}
+            {$fmt.measurement(
+              entry.volume_ml,
+              $data.state.settings.fuel_unit
+            ) || $t('Volume unknown')}
             {$data.state.settings.fuel_unit} · {entry.distance_m !== null
-              ? display(entry.distance_m, $data.state.settings.distance_unit) +
-                ' ' +
-                $data.state.settings.distance_unit +
-                ' driven'
-              : entry.odometer_m !== null
-                ? 'Odometer ' +
-                  display(
-                    entry.odometer_m,
+              ? $t('{distance} {unit} driven', {
+                  distance: $fmt.measurement(
+                    entry.distance_m,
                     $data.state.settings.distance_unit
-                  ) +
-                  ' ' +
-                  $data.state.settings.distance_unit
-                : 'Distance unknown'} · {entry.tank} tank
+                  ),
+                  unit: $data.state.settings.distance_unit
+                })
+              : entry.odometer_m !== null
+                ? $t('Odometer {value} {unit}', {
+                    value: $fmt.measurement(
+                      entry.odometer_m,
+                      $data.state.settings.distance_unit
+                    ),
+                    unit: $data.state.settings.distance_unit
+                  })
+                : $t('Distance unknown')} · {$t('Tank: {status}', {
+              status: $t(entry.tank)
+            })}
           </p>{/if}
         {#if entry.gap || (entry.tank === 'unknown' && kind === 'fuel') || (entry.volume_ml === null && kind === 'fuel')}<p
             class="muted"
           >
-            Incomplete interval · Recorded values are retained; no missing data
-            is assumed.
+            {$t(
+              'Incomplete interval · Recorded values are retained; no missing data is assumed.'
+            )}
           </p>{/if}
         {#if entry.notes}<p>{entry.notes}</p>{/if}
         <Attachments entryID={entry.id} />
         {#if entry.extra}<details>
-            <summary>Imported source information</summary>
+            <summary>{$t('Imported source information')}</summary>
             <dl>
               {#each Object.entries(entry.extra) as [key, value] (key)}<dt>
                   {key}
@@ -160,7 +171,8 @@
             </dl>
           </details>{/if}
         {#if $data.state.profiles.length > 1}<small
-            >Paid by {$data.state.profiles.find((p) => p.id === entry.payer_id)
+            >{$t('Paid by')}
+            {$data.state.profiles.find((p) => p.id === entry.payer_id)
               ?.name}</small
           >{/if}
         <div class="row">
@@ -168,22 +180,22 @@
             class="secondary"
             onclick={() => {
               editing = structuredClone(entry);
-              notice = '';
-            }}>Edit</button
+              notice = $t('');
+            }}>{$t('Edit')}</button
           >
           {#if !entry.schedule_id}<button
               class="secondary"
-              onclick={() => (pendingDelete = entry.id)}>Delete</button
+              onclick={() => (pendingDelete = entry.id)}>{$t('Delete')}</button
             >{/if}
           {#if pendingDelete === entry.id}<span
-              >Delete this entry and its attachments?</span
+              >{$t('Delete this entry and its attachments?')}</span
             ><button class="danger" onclick={() => remove(entry.id)}
-              >Confirm delete</button
-            ><button class="secondary" onclick={() => (pendingDelete = '')}
-              >Keep entry</button
+              >{$t('Confirm delete')}</button
+            ><button class="secondary" onclick={() => (pendingDelete = $t(''))}
+              >{$t('Keep entry')}</button
             >{/if}
         </div>
       </article>
     {/each}
   {/if}
-{:else}<p class="muted">Loading your records…</p>{/if}
+{:else}<p class="muted">{$t('Loading your records…')}</p>{/if}

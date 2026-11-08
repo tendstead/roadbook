@@ -105,6 +105,9 @@ vehicle if more than one is available. Hide profile/sharing/payer controls when
 only one profile exists. Settings supports first vehicle, profiles, membership,
 units, schedules, CSV import/export and backup guidance. No offline write queue.
 Never imply an unsaved form is stored; retain form values on recoverable errors.
+English/German interface language is detected from the browser on first use and
+can be overridden per browser in Settings. Localize presentation and known feedback,
+keeping stored values, units and CSV interpretation independent; see [i18n](i18n.md).
 
 Overview: monthly fuel spending bars, consumption/fuel-cost cards, total-expense
 card, upkeep/month, yearly distance display, recent entries and gap explanations.

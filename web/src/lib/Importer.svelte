@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { translator as t, feedback } from './i18n';
   import {
     data,
     selectedVehicle,
@@ -174,23 +175,22 @@
 </script>
 
 <section class="panel">
-  <h2>Import CSV history</h2>
+  <h2>{$t('Import CSV history')}</h2>
   <p class="muted">
-    Choose a table range and map its columns. Repeat for other tables in the
-    same file. Every original cell is preserved with its record; summaries are
-    not automatically treated as itemized expenses.
+    {$t(
+      'Choose a table range and map its columns. Repeat for other tables in the same file. Every original cell is preserved with its record; summaries are not automatically treated as itemized expenses.'
+    )}
   </p>
-  {#if error}<p class="error" role="alert">{error}</p>{/if}{#if notice}<p
-      class="notice"
-      role="status"
-    >
-      {notice}
+  {#if error}<p class="error" role="alert">
+      {$feedback(error)}
+    </p>{/if}{#if notice}<p class="notice" role="status">
+      {$feedback(notice)}
     </p>{/if}
   {#if !$data?.state.vehicles.length}<p>
-      Add a vehicle before importing.
+      {$t('Add a vehicle before importing.')}
     </p>{:else}
     <label
-      >CSV file<input
+      >{$t('CSV file')}<input
         type="file"
         accept=".csv,.tsv,text/csv,text/tab-separated-values"
         onchange={fileChosen}
@@ -198,104 +198,115 @@
     >
     {#if source}<div class="grid">
         <label
-          >Delimiter<select bind:value={delimiter} onchange={inspect}
-            ><option value=",">Comma</option><option value=";">Semicolon</option
-            ><option value="&#9;">Tab</option></select
+          >{$t('Delimiter')}<select bind:value={delimiter} onchange={inspect}
+            ><option value=",">{$t('Comma')}</option><option value=";"
+              >{$t('Semicolon')}</option
+            ><option value="&#9;">{$t('Tab')}</option></select
           ></label
         >
         <label
-          >Decimal separator<select bind:value={decimal}
-            ><option value=",">Comma (1.234,56)</option><option value="."
-              >Point (1,234.56)</option
+          >{$t('Decimal separator')}<select bind:value={decimal}
+            ><option value=",">{$t('Comma (1.234,56)')}</option><option
+              value=".">{$t('Point (1,234.56)')}</option
             ></select
           ></label
         >
         <label
-          >Date format<select bind:value={dateFormat}
+          >{$t('Date format')}<select bind:value={dateFormat}
             >{#each ['DD.MM.YYYY', 'YYYY-MM-DD', 'MM/DD/YYYY'] as format (format)}<option
                 >{format}</option
               >{/each}</select
           ></label
         >
         <label
-          >Table type<select
+          >{$t('Table type')}<select
             bind:value={kind}
             onchange={() => {
               rows = [];
               mappings = {};
             }}
-            ><option value="fuel">Fuel</option><option value="expense"
-              >Expenses / upkeep</option
-            ><option value="schedule">Recurring expenses</option></select
+            ><option value="fuel">{$t('Fuel')}</option><option value="expense"
+              >{$t('Expenses / upkeep')}</option
+            ><option value="schedule">{$t('Recurring expenses')}</option
+            ></select
           ></label
         >
         <label
-          >First data row<input
+          >{$t('First data row')}<input
             type="number"
             min="2"
             bind:value={first}
           /></label
         ><label
-          >Last data row (0 = end)<input
+          >{$t('Last data row (0 = end)')}<input
             type="number"
             min="0"
             bind:value={last}
           /></label
         >
         {#if kind !== 'fuel'}<label
-            >Default category<select bind:value={defaultCategory}
+            >{$t('Default category')}<select bind:value={defaultCategory}
               >{#each ['repair', 'service', 'tyres', 'inspection', 'parts', 'purchase', 'insurance', 'tax', 'lease', 'other'] as category (category)}<option
-                  >{category}</option
+                  value={category}>{$t(category)}</option
                 >{/each}</select
             ></label
           >{/if}
       </div>
       <p>
         <small
-          >Source measurements use the current installation units: {$data!.state
-            .settings.distance_unit}, {$data!.state.settings.fuel_unit}, {$data!
-            .state.settings.currency}. Change units before import if needed;
-          existing records are converted, not relabelled.</small
+          >{$t('Source measurements use the current installation units:')}
+          {$data!.state.settings.distance_unit}, {$data!.state.settings
+            .fuel_unit}, {$data!.state.settings.currency}{$t(
+            '. Change units before import if needed; existing records are converted, not relabelled.'
+          )}</small
         >
       </p>
       <div class="grid">
         {#each fields as field (field)}<label
-            >{names[field]} column<select
+            >{$t(names[field])}
+            {$t('column')}<select
               value={mappings[field] ?? -1}
               onchange={(e) =>
                 (mappings[field] = Number(e.currentTarget.value))}
-              ><option value="-1">Not mapped · preserve source</option
+              ><option value="-1">{$t('Not mapped · preserve source')}</option
               >{#each headers as header, i (i)}<option value={i}
-                  >{i + 1}: {header || '(unnamed)'}</option
+                  >{i + 1}: {header || $t('(unnamed)')}</option
                 >{/each}</select
             ></label
           >{/each}
       </div>
       <button class="secondary" disabled={busy} onclick={preview}
-        >Preview import</button
+        >{$t('Preview import')}</button
       >
     {/if}
-    {#if rows.length}<h3>Review {rows.length} rows</h3>
+    {#if rows.length}<h3>{$t('Review')} {rows.length} {$t('rows')}</h3>
       <p>
-        Correct dates and values before selecting a row. Source warnings remain
-        visible for reference. Nothing is saved until you import.
+        {$t(
+          'Correct dates and values before selecting a row. Source warnings remain visible for reference. Nothing is saved until you import.'
+        )}
       </p>
       <div class="scroll">
         <table>
           <thead
             ><tr
-              ><th>Include</th><th>Source row</th><th>Date</th><th>Amount</th
-              >{#if kind === 'fuel'}<th>Volume</th><th>Distance</th><th>Tank</th
-                >{:else}<th>Category</th>{/if}{#if kind === 'schedule'}<th
-                  >Frequency</th
-                ><th>Last due date</th>{/if}<th>Source issues</th></tr
+              ><th>{$t('Include')}</th><th>{$t('Source row')}</th><th
+                >{$t('Date')}</th
+              ><th>{$t('Amount')}</th>{#if kind === 'fuel'}<th
+                  >{$t('Volume')}</th
+                ><th>{$t('Distance')}</th><th>{$t('Tank')}</th>{:else}<th
+                  >{$t('Category')}</th
+                >{/if}{#if kind === 'schedule'}<th>{$t('Frequency')}</th><th
+                  >{$t('Last due date')}</th
+                >{/if}<th>{$t('Source issues')}</th></tr
             ></thead
           ><tbody>
             {#each rows.slice(page * 100, (page + 1) * 100) as row (row.source_row)}<tr
                 ><td
                   ><input
                     type="checkbox"
-                    aria-label={`Include row ${row.source_row}`}
+                    aria-label={$t('Include row {row}', {
+                      row: row.source_row
+                    })}
                     value={row.source_row}
                     bind:group={selected}
                   /></td
@@ -303,13 +314,13 @@
                 <td
                   ><input
                     type="date"
-                    aria-label={`Date row ${row.source_row}`}
+                    aria-label={$t('Date row {row}', { row: row.source_row })}
                     bind:value={row.entry.date}
                   /></td
                 >
                 <td
                   ><input
-                    aria-label={`Amount row ${row.source_row}`}
+                    aria-label={$t('Amount row {row}', { row: row.source_row })}
                     value={moneyInput(row.entry.amount_minor)}
                     onchange={(e) => {
                       try {
@@ -322,7 +333,9 @@
                 >
                 {#if kind === 'fuel'}<td
                     ><input
-                      aria-label={`Volume row ${row.source_row}`}
+                      aria-label={$t('Volume row {row}', {
+                        row: row.source_row
+                      })}
                       value={display(
                         row.entry.volume_ml,
                         $data!.state.settings.fuel_unit
@@ -340,7 +353,9 @@
                     /></td
                   ><td
                     ><input
-                      aria-label={`Distance row ${row.source_row}`}
+                      aria-label={$t('Distance row {row}', {
+                        row: row.source_row
+                      })}
                       value={display(
                         row.entry.distance_m,
                         $data!.state.settings.distance_unit
@@ -358,38 +373,46 @@
                     /></td
                   ><td
                     ><select
-                      aria-label={`Tank row ${row.source_row}`}
+                      aria-label={$t('Tank row {row}', { row: row.source_row })}
                       bind:value={row.entry.tank}
-                      ><option value="unknown">Unknown</option><option
-                        value="full">Full</option
-                      ><option value="partial">Partial</option></select
+                      ><option value="unknown">{$t('Unknown')}</option><option
+                        value="full">{$t('Full')}</option
+                      ><option value="partial">{$t('Partial')}</option></select
                     ></td
                   >{:else}<td
                     ><select
                       bind:value={row.entry.category}
-                      aria-label={`Category row ${row.source_row}`}
+                      aria-label={$t('Category row {row}', {
+                        row: row.source_row
+                      })}
                       >{#each ['repair', 'service', 'tyres', 'inspection', 'parts', 'purchase', 'insurance', 'tax', 'lease', 'parking', 'toll', 'other'] as category (category)}<option
-                          >{category}</option
+                          value={category}>{$t(category)}</option
                         >{/each}</select
                     ></td
                   >{/if}
                 {#if row.schedule}<td
                     ><select
-                      aria-label={`Frequency row ${row.source_row}`}
+                      aria-label={$t('Frequency row {row}', {
+                        row: row.source_row
+                      })}
                       bind:value={row.schedule.months}
-                      ><option value={1}>Monthly</option><option value={3}
-                        >Quarterly</option
-                      ><option value={12}>Annually</option></select
+                      ><option value={1}>{$t('Monthly')}</option><option
+                        value={3}>{$t('Quarterly')}</option
+                      ><option value={12}>{$t('Annually')}</option></select
                     ></td
                   ><td
                     ><input
                       type="date"
-                      aria-label={`End date row ${row.source_row}`}
+                      aria-label={$t('End date row {row}', {
+                        row: row.source_row
+                      })}
                       bind:value={row.schedule.end}
                     /></td
                   >{/if}
                 <td
-                  >{[...row.errors, ...row.warnings].join('; ') || 'Ready'}
+                  >{[...row.errors, ...row.warnings]
+                    .map((value) => $feedback(value))
+                    .join('; ') || $t('Ready')}
                   {#each Object.keys(row.field_errors || {}) as field (field)}
                     <label class="checkbox"
                       ><input
@@ -398,8 +421,10 @@
                         bind:group={row.unknown_fields}
                       />
                       {field === 'end_date'
-                        ? 'Continue without an end date (until stopped)'
-                        : `Explicitly accept invalid ${names[field]} as unknown`}</label
+                        ? $t('Continue without an end date (until stopped)')
+                        : $t('Explicitly accept invalid {field} as unknown', {
+                            field: $t(names[field])
+                          })}</label
                     >
                   {/each}
                 </td></tr
@@ -409,19 +434,24 @@
       </div>
       {#if rows.length > 100}<div class="row">
           <button class="secondary" disabled={page === 0} onclick={() => page--}
-            >Previous rows</button
-          ><span>Page {page + 1} / {Math.ceil(rows.length / 100)}</span><button
+            >{$t('Previous rows')}</button
+          ><span>{$t('Page')} {page + 1} / {Math.ceil(rows.length / 100)}</span
+          ><button
             class="secondary"
             disabled={(page + 1) * 100 >= rows.length}
-            onclick={() => page++}>Next rows</button
+            onclick={() => page++}>{$t('Next rows')}</button
           >
         </div>{/if}
       <label class="checkbox"
-        ><input type="checkbox" bind:checked={allowMatches} /> I reviewed matching
-        existing records and want to allow them</label
+        ><input type="checkbox" bind:checked={allowMatches} />
+        {$t(
+          'I reviewed matching existing records and want to allow them'
+        )}</label
       >
       <button disabled={busy || !selected.length} onclick={commit}
-        >Import {selected.length} selected rows</button
+        >{$t('Import {count} selected rows', {
+          count: selected.length
+        })}</button
       >
     {/if}{/if}
 </section>
