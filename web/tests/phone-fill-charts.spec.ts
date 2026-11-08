@@ -206,3 +206,79 @@ test('short two-month chart labels stay separate on narrow screens', async ({
   );
   expect(bounds[1].left).toBeGreaterThan(bounds[0].right);
 });
+
+test('fuel history fits compact rows while keeping source details and editing accessible', async ({
+  page,
+  request
+}) => {
+  const { headers, vehicle } = await seed(page, request);
+  for (let i = 1; i <= 12; i++)
+    expect(
+      (
+        await request.post('/api/entries', {
+          headers,
+          data: {
+            kind: 'fuel',
+            vehicle_id: vehicle.id,
+            date: `2025-01-${String(i).padStart(2, '0')}`,
+            station: `Station ${i}`,
+            volume_ml: 30000,
+            distance_m: 500000,
+            amount_minor: 5000,
+            tank: 'full',
+            notes: 'Station note',
+            extra: { '1:source': 'kept' }
+          }
+        })
+      ).ok()
+    ).toBe(true);
+  // Match the large-screen density complaint; row height is checked separately.
+  if (test.info().project.name === 'desktop')
+    await page.setViewportSize({ width: 1440, height: 1080 });
+  await page.goto('/fuel');
+  const entries = page.locator('.history-entry');
+  await expect(entries).toHaveCount(12);
+  const row = entries.first();
+  await expect(row).toContainText('30');
+  await expect(row).toContainText('500');
+  if (test.info().project.name === 'desktop') {
+    const heights = await entries.evaluateAll((els) =>
+      els.map((el) => el.getBoundingClientRect().height)
+    );
+    expect(Math.max(...heights)).toBeLessThan(145);
+    expect(
+      await entries.evaluateAll(
+        (els) =>
+          els.filter((el) => {
+            const r = el.getBoundingClientRect();
+            return r.top >= 0 && r.bottom <= innerHeight;
+          }).length
+      )
+    ).toBeGreaterThanOrEqual(4);
+  }
+  await page.screenshot({
+    path: `test-results/compact-fuel-${test.info().project.name}.png`,
+    fullPage: true
+  });
+  await row.getByRole('button', { name: 'Delete', exact: true }).click();
+  await expect(
+    row.getByText('Delete this entry and its attachments?', { exact: true })
+  ).toBeVisible();
+  expect(
+    await page.evaluate(
+      () => document.documentElement.scrollWidth <= innerWidth
+    )
+  ).toBe(true);
+  await row.getByRole('button', { name: 'Keep entry', exact: true }).click();
+  await row.getByText('Imported source information', { exact: true }).click();
+  await expect(row.getByText('kept', { exact: true })).toBeVisible();
+  await row.getByRole('button', { name: 'Edit', exact: true }).click();
+  await expect(
+    page.getByRole('heading', { name: 'Edit', exact: true })
+  ).toBeVisible();
+  expect(
+    await page.evaluate(
+      () => document.documentElement.scrollWidth <= innerWidth
+    )
+  ).toBe(true);
+});

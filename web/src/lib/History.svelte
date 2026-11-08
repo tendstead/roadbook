@@ -104,24 +104,29 @@
         </p>
       </section>{/if}
     {#each records as entry (entry.id)}
-      <article class="panel history-entry">
+      <article class="panel history-entry" class:compact-fuel={kind === 'fuel'}>
         <EntrySummary {entry} settings={$data.state.settings} />
         <Attachments entryID={entry.id} />
-        {#if entry.extra}<details>
-            <summary>{$t('Imported source information')}</summary>
-            <dl>
-              {#each Object.entries(entry.extra) as [key, value] (key)}<dt>
-                  {key}
-                </dt>
-                <dd>{value}</dd>{/each}
-            </dl>
-          </details>{/if}
-        {#if $data.state.profiles.length > 1}<small
-            >{$t('Paid by')}
-            {$data.state.profiles.find((p) => p.id === entry.payer_id)
-              ?.name}</small
-          >{/if}
-        <div class="row">
+        <div class="entry-provenance">
+          {#if entry.extra}<details>
+              <summary>{$t('Imported source information')}</summary>
+              <dl>
+                {#each Object.entries(entry.extra) as [key, value] (key)}<dt>
+                    {key}
+                  </dt>
+                  <dd>{value}</dd>{/each}
+              </dl>
+            </details>{/if}
+          {#if $data.state.profiles.length > 1}<small
+              >{$t('Paid by')}
+              {$data.state.profiles.find((p) => p.id === entry.payer_id)
+                ?.name}</small
+            >{/if}
+        </div>
+        <div
+          class="row entry-actions"
+          class:confirming={pendingDelete === entry.id}
+        >
           <button
             class="secondary"
             onclick={() => {

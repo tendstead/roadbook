@@ -26,7 +26,7 @@
       : $fmt.money(entry.amount_minor, settings.currency)}</strong
   >
 </div>
-{#if entry.kind === 'fuel'}<p>
+{#if entry.kind === 'fuel'}<p class="entry-measurements">
     {$fmt.measurement(entry.volume_ml, settings.fuel_unit) ||
       $t('Volume unknown')}
     {settings.fuel_unit} · {entry.distance_m !== null
@@ -50,10 +50,10 @@
     })}
   </p>{/if}
 {#if entry.gap || (entry.tank === 'unknown' && entry.kind === 'fuel') || (entry.volume_ml === null && entry.kind === 'fuel')}<p
-    class="muted"
+    class="muted entry-warning"
   >
     {$t(
       'Incomplete interval · Recorded values are retained; no missing data is assumed.'
     )}
   </p>{/if}
-{#if entry.notes}<p>{entry.notes}</p>{/if}
+{#if entry.notes}<p class="entry-notes">{entry.notes}</p>{/if}

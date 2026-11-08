@@ -434,3 +434,94 @@ dialog::backdrop {
   width: 44px;
   padding: 0.6rem;
 }
+
+/* Dense persisted fuel rows; import examples and expense cards remain separate. */
+.compact-fuel {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 0.2rem 0.8rem;
+  padding: 0.65rem 0.9rem;
+  margin-bottom: 0.5rem;
+  font-size: 0.875rem;
+}
+.compact-fuel > .toolbar {
+  grid-column: 1;
+  margin: 0;
+  gap: 0.7rem;
+  min-width: 0;
+}
+.compact-fuel > .toolbar > div {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 0.2rem 0.8rem;
+  min-width: 0;
+}
+.compact-fuel .toolbar small,
+.compact-fuel .toolbar strong {
+  white-space: nowrap;
+}
+.compact-fuel h3 {
+  font-size: 1rem;
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+.compact-fuel > p {
+  margin: 0;
+  line-height: 1.4;
+  overflow-wrap: anywhere;
+}
+.compact-fuel > .entry-measurements {
+  grid-column: 1;
+}
+.compact-fuel > .entry-actions {
+  grid-column: 2;
+  grid-row: 1 / span 2;
+  align-self: start;
+  gap: 0.4rem;
+}
+.compact-fuel .entry-actions button {
+  padding: 0.4rem 0.65rem;
+}
+.compact-fuel > :not(.toolbar):not(.entry-measurements):not(.entry-actions) {
+  grid-column: 1 / -1;
+}
+.compact-fuel .entry-provenance {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 0.3rem 1rem;
+}
+.entry-provenance:empty,
+.compact-fuel > .attachments:empty {
+  display: none;
+}
+.compact-fuel .entry-provenance {
+  font-size: 0.75rem;
+  color: var(--ts-muted);
+}
+.compact-fuel .entry-provenance dl {
+  overflow-wrap: anywhere;
+}
+.compact-fuel .entry-warning {
+  font-size: 0.8rem;
+}
+.compact-fuel > .attachments {
+  margin: 0.3rem 0;
+}
+@media (max-width: 600px) {
+  .compact-fuel {
+    grid-template-columns: minmax(0, 1fr);
+    padding: 0.7rem;
+  }
+  .compact-fuel > .entry-actions {
+    grid-column: 1;
+    grid-row: auto;
+    justify-content: flex-end;
+  }
+}
+
+.compact-fuel > .entry-actions.confirming {
+  grid-column: 1 / -1;
+  grid-row: auto;
+}
