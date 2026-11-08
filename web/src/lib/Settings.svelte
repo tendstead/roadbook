@@ -182,7 +182,7 @@
     </p>{/if}{#if notice}<p class="notice" role="status">
       {$feedback(notice)}
     </p>{/if}
-  <form class="panel" onsubmit={saveVehicle}>
+  <form class="panel" id="vehicle-setup" onsubmit={saveVehicle}>
     <h2>
       {form.id
         ? $t('Edit vehicle')

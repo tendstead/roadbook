@@ -289,3 +289,94 @@ dialog::backdrop {
   object-fit: contain;
   margin: 1rem auto;
 }
+
+.import-banner {
+  display: flex;
+  gap: 1rem;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  margin-bottom: 1rem;
+}
+#import,
+#vehicle-setup {
+  scroll-margin-top: 1rem;
+}
+.import-workspace {
+  min-width: 0;
+}
+.file-drop {
+  border: 2px dashed var(--ts-border);
+  border-radius: 10px;
+  padding: 1rem;
+  margin-bottom: 1.25rem;
+}
+.source-columns,
+.mapping-fields,
+.example-entries {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr));
+  gap: 0.8rem;
+}
+.source-column {
+  display: flex;
+  align-items: stretch;
+  flex-direction: column;
+  text-align: left;
+  cursor: grab;
+  min-width: 0;
+}
+.source-column span,
+.source-column strong {
+  overflow-wrap: anywhere;
+}
+.source-column span {
+  font-size: 0.85rem;
+  font-weight: normal;
+}
+.source-column.chosen {
+  outline: 3px solid var(--ts-focus);
+  outline-offset: 2px;
+}
+.mapping-group {
+  margin: 1.25rem 0;
+  padding: 1rem;
+  min-width: 0;
+}
+.mapping-group legend {
+  font-weight: 600;
+  padding: 0 0.4rem;
+}
+.mapping-target {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  border: 1px dashed var(--ts-border);
+  border-radius: 8px;
+  padding: 0.75rem;
+}
+.mapping-target label {
+  min-width: 0;
+}
+.mapping-target select {
+  max-width: 100%;
+}
+.mapping-target button:disabled {
+  cursor: default;
+}
+.import-example {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.import-example.incomplete {
+  background: var(--ts-surface-subtle, var(--ts-surface));
+}
+.import-example ul {
+  padding-inline-start: 1.2rem;
+}
+.import-example .toolbar {
+  margin-top: 0.75rem;
+}
+.file-drop input {
+  max-width: 100%;
+}

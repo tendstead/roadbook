@@ -122,6 +122,14 @@ transaction with a content+mapping+vehicle fingerprint and per-row keys. Repeat
 commit is idempotent; warn about matching existing records. Never force unknown
 tank status to full. Export complete records and metadata with explicit units.
 
+The v1 guided import workspace lives at Settings → Import (`/settings#import`).
+An empty-history banner links there until the first fuel or expense record exists.
+Read dropped/selected CSV files in the browser, show source headers with two sample
+cells, and map through drag, click or accessible dropdowns. Explicit source formats
+and units drive two unsaved examples using the shared history-entry presentation.
+No source is sent until server review is requested; interpretation/context changes
+invalidate review. See [workspace design](superpowers/specs/2026-11-08-import-workspace-design.md).
+
 Attachments accept JPEG/PNG/WebP, validate actual decoding, correct orientation,
 retain original bytes, cap each file at 20 MiB and decoded image at 40 megapixels.
 Generate a maximum 512px JPEG preview once, persist it and never upscale. A failed

@@ -58,7 +58,7 @@ export const feedback = derived(
         if (locale === 'en' || german[value] !== undefined)
           return translate(locale, value);
         const prefix = value.match(
-          /^(\d{4}-\d{2}-\d{2}|Date|amount_minor|volume_ml|distance_m|odometer_m): (.*)$/s
+          /^(\d{4}-\d{2}-\d{2}|Date|amount_minor|volume_ml|distance_m|odometer_m|Last due date): (.*)$/s
         );
         if (prefix) {
           const fields: Record<string, string> = {

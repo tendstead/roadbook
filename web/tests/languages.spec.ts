@@ -176,7 +176,7 @@ test('German import review translates feedback and preserves source parsing and 
     '1234.56'
   );
   await expect(
-    page.getByText('Betrag: Ungültige Zahl', { exact: false })
+    page.getByRole('cell').filter({ hasText: 'Betrag: Ungültige Zahl' })
   ).toBeVisible();
   await page
     .getByRole('button', {

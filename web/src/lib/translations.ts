@@ -1,5 +1,36 @@
 // English source messages are keys. User and imported content is never translated.
 export const german: Record<string, string> = {
+  'CSV contains invalid quoting':
+    'Die CSV-Datei enthält ungültige Anführungszeichen',
+  'Import existing history': 'Vorhandene Historie importieren',
+  'Already tracking your vehicle? Bring your history into Roadbook.':
+    'Erfasst du dein Fahrzeug bereits? Übernimm deine Historie in Roadbook.',
+  'Import CSV': 'CSV importieren',
+  'Date unknown': 'Datum unbekannt',
+  'Drop CSV file': 'CSV-Datei ablegen',
+  'Drop a CSV file here': 'CSV-Datei hier ablegen',
+  'Or choose a file. Your file stays in this browser until you request the import review.':
+    'Oder wähle eine Datei aus. Sie bleibt in diesem Browser, bis du die Importprüfung anforderst.',
+  'Source distance unit': 'Streckeneinheit der Quelldatei',
+  'Source fuel unit': 'Mengeneinheit der Quelldatei',
+  'Source currency: {currency}. Amounts are not converted between currencies.':
+    'Quellwährung: {currency}. Beträge werden nicht zwischen Währungen umgerechnet.',
+  'Source columns': 'Quellspalten',
+  'Drag a column onto a field, or select a column and choose its field. Dropdowns also work with touch and keyboard.':
+    'Ziehe eine Spalte auf ein Feld oder wähle zuerst die Spalte und dann das Feld. Die Auswahllisten funktionieren auch per Touch und Tastatur.',
+  'Use column {number}: {header}': 'Spalte {number} verwenden: {header}',
+  'Required for saving': 'Zum Speichern erforderlich',
+  'Useful for statistics': 'Für Statistiken hilfreich',
+  'Optional details': 'Optionale Angaben',
+  'Map {field}': '{field} zuordnen',
+  'Clear {field}': 'Zuordnung für {field} entfernen',
+  'Clear mapping': 'Zuordnung entfernen',
+  'Live examples': 'Direkte Vorschau',
+  'Unsaved examples · Values update as you map columns. Nothing has been imported.':
+    'Ungespeicherte Beispiele · Werte aktualisieren sich bei der Spaltenzuordnung. Es wurde nichts importiert.',
+  'No source rows in this range.': 'Keine Quellzeilen in diesem Bereich.',
+  'Unsaved example': 'Ungespeichertes Beispiel',
+
   Overview: 'Übersicht',
   Fuel: 'Tanken',
   'Costs & upkeep': 'Kosten & Wartung',

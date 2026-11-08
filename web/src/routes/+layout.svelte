@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { resolve } from '$app/paths';
   import { translator as t, feedback, initializeLanguage } from '../lib/i18n';
   import { AppShell } from '@tendstead/ui';
   import '@tendstead/ui/theme.css';
@@ -79,6 +80,19 @@
           >{/if}
       </div>
     </div>
+  {/if}
+  {#if $data && !$data.state.records.length && !(page.url.pathname === '/settings' && page.url.hash === '#import')}
+    <section
+      class="notice import-banner"
+      aria-label={$t('Import existing history')}
+    >
+      <span
+        >{$t(
+          'Already tracking your vehicle? Bring your history into Roadbook.'
+        )}</span
+      >
+      <a href={resolve('/settings#import')}>{$t('Import CSV')}</a>
+    </section>
   {/if}
   {@render children()}
 </AppShell>

@@ -2,6 +2,22 @@ package domain
 
 import "testing"
 
+func TestImportExplicitAdditionalDateFormats(t *testing.T) {
+	for _, tc := range []struct{ value, format, want string }{
+		{"04/05/2025", "DD/MM/YYYY", "2025-05-04"},
+		{"04/05/2025", "MM/DD/YYYY", "2025-04-05"},
+		{"2026.10.31", "YYYY.MM.DD", "2026-10-31"},
+	} {
+		got, err := importDate(tc.value, tc.format)
+		if err != nil || got != tc.want {
+			t.Errorf("%s %s: got %s, %v", tc.value, tc.format, got, err)
+		}
+	}
+	if _, err := importDate("31/02/2025", "DD/MM/YYYY"); err == nil {
+		t.Fatal("invalid calendar date accepted")
+	}
+}
+
 func TestImportLocalizedValuesAndPreserveUnmappedCells(t *testing.T) {
 	spec := ImportSpec{CSV: "Date;Volume;Distance;Paid;Memo\n01.01.2025;30,25;500,1;54,45 €;keep this\n02.02.0200;-;200;20;bad date", Delimiter: ";", Decimal: ",", DateFormat: "DD.MM.YYYY", Kind: "fuel", VehicleID: NewID(), PayerID: NewID(), DistanceUnit: "km", FuelUnit: "L", StartRow: 2, Columns: map[string]int{"date": 0, "volume_ml": 1, "distance_m": 2, "amount_minor": 3}}
 	rows, e := PreviewImport(spec)

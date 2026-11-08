@@ -10,7 +10,7 @@
     message,
     type Entry
   } from './api';
-  import { formatters as fmt } from './format';
+  import EntrySummary from './EntrySummary.svelte';
   import EntryForm from './EntryForm.svelte';
   import Attachments from './Attachments.svelte';
   let { kind }: { kind: string } = $props();
@@ -105,61 +105,7 @@
       </section>{/if}
     {#each records as entry (entry.id)}
       <article class="panel history-entry">
-        <div class="toolbar">
-          <div>
-            <small
-              >{$fmt.date(entry.date)}{#if entry.schedule_id}{$t(
-                  '· Recurring'
-                )}{/if}</small
-            >
-            <h3>
-              {kind === 'fuel'
-                ? entry.station || $t('Fuel stop')
-                : entry.description || $t(entry.category)}
-            </h3>
-          </div>
-          <strong
-            >{entry.amount_minor === null
-              ? $t('Amount unknown')
-              : $fmt.money(
-                  entry.amount_minor,
-                  $data.state.settings.currency
-                )}</strong
-          >
-        </div>
-        {#if kind === 'fuel'}<p>
-            {$fmt.measurement(
-              entry.volume_ml,
-              $data.state.settings.fuel_unit
-            ) || $t('Volume unknown')}
-            {$data.state.settings.fuel_unit} · {entry.distance_m !== null
-              ? $t('{distance} {unit} driven', {
-                  distance: $fmt.measurement(
-                    entry.distance_m,
-                    $data.state.settings.distance_unit
-                  ),
-                  unit: $data.state.settings.distance_unit
-                })
-              : entry.odometer_m !== null
-                ? $t('Odometer {value} {unit}', {
-                    value: $fmt.measurement(
-                      entry.odometer_m,
-                      $data.state.settings.distance_unit
-                    ),
-                    unit: $data.state.settings.distance_unit
-                  })
-                : $t('Distance unknown')} · {$t('Tank: {status}', {
-              status: $t(entry.tank)
-            })}
-          </p>{/if}
-        {#if entry.gap || (entry.tank === 'unknown' && kind === 'fuel') || (entry.volume_ml === null && kind === 'fuel')}<p
-            class="muted"
-          >
-            {$t(
-              'Incomplete interval · Recorded values are retained; no missing data is assumed.'
-            )}
-          </p>{/if}
-        {#if entry.notes}<p>{entry.notes}</p>{/if}
+        <EntrySummary {entry} settings={$data.state.settings} />
         <Attachments entryID={entry.id} />
         {#if entry.extra}<details>
             <summary>{$t('Imported source information')}</summary>

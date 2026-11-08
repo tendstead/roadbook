@@ -141,7 +141,7 @@ test('reviewed CSV import is repeatable without duplicating records', async ({
   const { profile, vehicle } = await seed(request);
   await select(page, profile, vehicle.id);
   await page.goto('/settings');
-  await page.getByLabel('CSV file').setInputFiles({
+  await page.getByLabel('CSV file', { exact: true }).setInputFiles({
     name: 'synthetic.csv',
     mimeType: 'text/csv',
     buffer: Buffer.from(

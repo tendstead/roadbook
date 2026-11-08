@@ -45,6 +45,17 @@ rows; split larger histories. Original cells are retained with imported records.
 Matching-record warnings require explicit review; importing a summary as a real
 expense requires a deliberate valid record rather than guessing its date.
 
+Supported date formats are `DD.MM.YYYY`, `DD/MM/YYYY`, `MM/DD/YYYY`,
+`YYYY-MM-DD` and `YYYY.MM.DD`. The chosen interpretation is explicit; ambiguous
+slash dates are never inferred. Source distance/fuel units are independent of
+installation display units. Currency conversion is not provided.
+
+The Settings import workspace reads files and renders up to two mapped examples
+locally. File selection, dropping and mapping do not call this API or persist
+source data in browser storage. Only the explicit Preview import action sends
+the source/configuration to `/api/import/preview`; commit remains a separate
+action. Changing source, interpretation, vehicle or profile discards old review.
+
 `/api/import/commit` accepts `{spec, rows, allow_matches}`. Each selected row keeps
 its source row number and reviewed entry; the server restores source cells from
 the CSV, validates references and values, and commits atomically. Reusing the

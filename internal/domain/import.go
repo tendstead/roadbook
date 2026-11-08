@@ -97,7 +97,7 @@ func ImportNumber(text, decimal string, factor *big.Rat, money bool) (*int64, er
 	return &n, nil
 }
 func importDate(s, format string) (string, error) {
-	layout := map[string]string{"DD.MM.YYYY": "02.01.2006", "YYYY-MM-DD": "2006-01-02", "MM/DD/YYYY": "01/02/2006"}[format]
+	layout := map[string]string{"DD.MM.YYYY": "02.01.2006", "DD/MM/YYYY": "02/01/2006", "YYYY.MM.DD": "2006.01.02", "YYYY-MM-DD": "2006-01-02", "MM/DD/YYYY": "01/02/2006"}[format]
 	if layout == "" {
 		return "", errors.New("unsupported date format")
 	}

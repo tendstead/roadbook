@@ -3,27 +3,57 @@ export function parseCSV(text: string, delimiter: string): string[][] {
   let row: string[] = [];
   let value = '';
   let quoted = false;
-  text = text.replace(/^\uFEFF/, '');
+  let closed = false;
+  let fieldStarted = false;
+  let recordStarted = false;
+  // Match encoding/csv's CRLF normalization, including inside quoted fields.
+  text = text
+    .replace(/^\uFEFF/, '')
+    .replace(/\r\n/g, '\n')
+    .replace(/\r$/, '');
   for (let i = 0; i < text.length; i++) {
     const c = text[i];
-    if (c === '"') {
-      if (quoted && text[i + 1] === '"') {
-        value += '"';
-        i++;
-      } else quoted = !quoted;
-    } else if (c === delimiter && !quoted) {
+    if (quoted) {
+      if (c === '"') {
+        if (text[i + 1] === '"') {
+          value += '"';
+          i++;
+        } else {
+          quoted = false;
+          closed = true;
+        }
+      } else value += c;
+    } else if (c === delimiter) {
       row.push(value);
       value = '';
-    } else if ((c === '\n' || c === '\r') && !quoted) {
-      if (c === '\r' && text[i + 1] === '\n') i++;
-      row.push(value);
-      rows.push(row);
+      closed = false;
+      fieldStarted = false;
+      recordStarted = true;
+    } else if (c === '\n') {
+      if (recordStarted) {
+        row.push(value);
+        rows.push(row);
+      }
       row = [];
       value = '';
-    } else value += c;
+      closed = false;
+      fieldStarted = false;
+      recordStarted = false;
+    } else if (c === '"') {
+      if (fieldStarted || closed)
+        throw new Error('CSV contains invalid quoting');
+      quoted = true;
+      fieldStarted = true;
+      recordStarted = true;
+    } else {
+      if (closed) throw new Error('CSV contains invalid quoting');
+      value += c;
+      fieldStarted = true;
+      recordStarted = true;
+    }
   }
   if (quoted) throw new Error('CSV contains an unclosed quote');
-  if (value || row.length) {
+  if (recordStarted) {
     row.push(value);
     rows.push(row);
   }

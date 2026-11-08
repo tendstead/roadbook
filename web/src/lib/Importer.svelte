@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { resolve } from '$app/paths';
   import { translator as t, feedback } from './i18n';
   import {
     data,
@@ -9,8 +10,10 @@
     type Entry,
     type Schedule
   } from './api';
-  import { parseCSV } from './csv';
   import { moneyInput, minor, display, scaled } from './units';
+  import { inspectCSV, previewRows, dateFormats } from './import-preview';
+  import { onMount } from 'svelte';
+  import EntrySummary from './EntrySummary.svelte';
   interface Row {
     source_row: number;
     entry: Entry;
@@ -21,56 +24,114 @@
     unknown_fields: string[];
   }
   let source = $state('');
+  let filename = $state('');
   let delimiter = $state(',');
   let decimal = $state(',');
   let dateFormat = $state('DD.MM.YYYY');
+  let distanceUnit = $state('km');
+  let fuelUnit = $state('L');
   let kind = $state('fuel');
   let first = $state(2);
   let last = $state(0);
   let defaultCategory = $state('repair');
   let mappings = $state<Record<string, number>>({});
-  let headers = $state<string[]>([]);
+  let activeColumn = $state<number | null>(null);
   let rows = $state<Row[]>([]);
   let selected = $state<number[]>([]);
   let allowMatches = $state(false);
   let error = $state('');
   let notice = $state('');
   let busy = $state(false);
-  let previewSpec = $state<unknown>(null);
   let page = $state(0);
-  const fields = $derived(
-    kind === 'fuel'
-      ? [
-          'date',
-          'amount_minor',
-          'volume_ml',
-          'distance_m',
-          'odometer_m',
-          'tank',
-          'gap',
-          'station',
-          'fuel_type',
-          'notes'
-        ]
-      : kind === 'schedule'
-        ? [
-            'date',
-            'amount_minor',
-            'category',
-            'description',
-            'frequency',
-            'end_date',
-            'notes'
-          ]
-        : [
-            'date',
-            'amount_minor',
-            'category',
-            'description',
-            'odometer_m',
-            'notes'
-          ]
+  let fileVersion = 0;
+  onMount(() => {
+    if (location.hash === '#import')
+      document.getElementById('import')?.scrollIntoView();
+  });
+  const inspection = $derived.by(() => {
+    try {
+      return { cells: source ? inspectCSV(source, delimiter) : [], error: '' };
+    } catch (e) {
+      return { cells: [], error: message(e) };
+    }
+  });
+  const headers = $derived(inspection.cells[0] || []);
+  const columns = $derived(
+    Object.fromEntries(Object.entries(mappings).filter(([, v]) => v >= 0))
   );
+  const spec = $derived({
+    csv: source,
+    delimiter,
+    decimal,
+    date_format: dateFormat,
+    kind,
+    vehicle_id: $selectedVehicle,
+    payer_id: $data?.profile_id || '',
+    distance_unit: distanceUnit,
+    fuel_unit: fuelUnit,
+    start_row: Number(first),
+    end_row: Number(last),
+    columns
+  });
+  const signature = $derived(
+    JSON.stringify({
+      spec,
+      defaultCategory,
+      currency: $data?.state.settings.currency
+    })
+  );
+  let reviewKey = $state('');
+  let previewSpec = $state<typeof spec | null>(null);
+  $effect(() => {
+    // Track interpretation/context only; edited review values do not invalidate it.
+    void signature;
+    rows = [];
+    selected = [];
+    previewSpec = null;
+    reviewKey = '';
+    allowMatches = false;
+    page = 0;
+  });
+  const examples = $derived(
+    previewRows(inspection.cells, {
+      ...spec,
+      default_category: defaultCategory
+    })
+  );
+  const groups = $derived([
+    {
+      name: 'Required for saving',
+      fields:
+        kind === 'fuel'
+          ? ['date']
+          : kind === 'schedule'
+            ? ['date', 'amount_minor', 'frequency']
+            : ['date', 'amount_minor']
+    },
+    {
+      name: 'Useful for statistics',
+      fields:
+        kind === 'fuel'
+          ? [
+              'amount_minor',
+              'volume_ml',
+              'distance_m',
+              'odometer_m',
+              'tank',
+              'gap'
+            ]
+          : ['odometer_m']
+    },
+    {
+      name: 'Optional details',
+      fields:
+        kind === 'fuel'
+          ? ['station', 'fuel_type', 'notes']
+          : kind === 'schedule'
+            ? ['category', 'description', 'notes', 'end_date']
+            : ['category', 'description', 'notes']
+    }
+  ]);
   const names: Record<string, string> = {
     date: 'Date',
     amount_minor: 'Amount paid',
@@ -87,70 +148,80 @@
     frequency: 'Frequency',
     end_date: 'Last due date'
   };
-  function inspect() {
-    try {
-      headers = parseCSV(source, delimiter)[0] || [];
-      rows = [];
-      mappings = {};
-      error = '';
-    } catch (e) {
-      error = message(e);
-    }
-  }
-  async function fileChosen(e: Event) {
-    const file = (e.currentTarget as HTMLInputElement).files?.[0];
+  async function readFile(file?: File) {
     if (!file) return;
+    const version = ++fileVersion;
+    error = '';
+    notice = '';
+    source = '';
+    filename = '';
+    mappings = {};
+    activeColumn = null;
     if (file.size > 1500000) {
       error = 'Use a CSV smaller than 1.5 MB';
       return;
     }
-    source = await file.text();
-    inspect();
+    try {
+      const text = await file.text();
+      if (version !== fileVersion) return;
+      source = text;
+      filename = file.name;
+      distanceUnit = $data?.state.settings.distance_unit || 'km';
+      fuelUnit = $data?.state.settings.fuel_unit || 'L';
+    } catch (e) {
+      if (version === fileVersion) error = message(e);
+    }
+  }
+  function fileChosen(e: Event) {
+    void readFile((e.currentTarget as HTMLInputElement).files?.[0]);
+  }
+  function dropFile(e: DragEvent) {
+    e.preventDefault();
+    void readFile(e.dataTransfer?.files[0]);
+  }
+  function dropColumn(e: DragEvent, field: string) {
+    e.preventDefault();
+    const raw = e.dataTransfer?.getData('application/x-roadbook-column');
+    if (!raw || !/^\d+$/.test(raw)) return;
+    const col = Number(raw);
+    if (col < headers.length) {
+      mappings[field] = col;
+      activeColumn = null;
+    }
   }
   async function preview() {
     error = '';
     notice = '';
     busy = true;
+    const key = signature;
+    const submitted = JSON.parse(JSON.stringify(spec)) as typeof spec;
+    const category = defaultCategory;
     try {
-      const columns = Object.fromEntries(
-        Object.entries(mappings).filter(([, v]) => v >= 0)
-      );
-      const spec = {
-        csv: source,
-        delimiter,
-        decimal,
-        date_format: dateFormat,
-        kind,
-        vehicle_id: $selectedVehicle,
-        payer_id: $data!.profile_id,
-        distance_unit: $data!.state.settings.distance_unit,
-        fuel_unit: $data!.state.settings.fuel_unit,
-        start_row: Number(first),
-        end_row: Number(last),
-        columns
-      };
       const result = await request<{ rows: Row[] }>(
         '/import/preview',
         'POST',
-        spec
+        submitted
       );
+      if (key !== signature) return;
       rows = result.rows.map((row) => ({ ...row, unknown_fields: [] }));
-      if (kind !== 'fuel' && !('category' in columns)) {
+      if (kind !== 'fuel' && !('category' in submitted.columns)) {
         for (const row of rows) {
-          row.entry.category = defaultCategory;
-          if (row.schedule) row.schedule.template.category = defaultCategory;
+          row.entry.category = category;
+          if (row.schedule) row.schedule.template.category = category;
         }
       }
       selected = rows.filter((r) => !r.errors.length).map((r) => r.source_row);
-      previewSpec = spec;
+      previewSpec = submitted;
+      reviewKey = key;
       page = 0;
     } catch (e) {
-      error = message(e);
+      if (key === signature) error = message(e);
     } finally {
       busy = false;
     }
   }
   async function commit() {
+    if (!previewSpec || reviewKey !== signature) return;
     error = '';
     busy = true;
     try {
@@ -174,31 +245,56 @@
   }
 </script>
 
-<section class="panel">
-  <h2>{$t('Import CSV history')}</h2>
+<section
+  class="panel import-workspace"
+  id="import"
+  aria-labelledby="import-title"
+>
+  <h2 id="import-title">{$t('Import CSV history')}</h2>
   <p class="muted">
     {$t(
       'Choose a table range and map its columns. Repeat for other tables in the same file. Every original cell is preserved with its record; summaries are not automatically treated as itemized expenses.'
     )}
   </p>
-  {#if error}<p class="error" role="alert">
-      {$feedback(error)}
-    </p>{/if}{#if notice}<p class="notice" role="status">
-      {$feedback(notice)}
-    </p>{/if}
-  {#if !$data?.state.vehicles.length}<p>
-      {$t('Add a vehicle before importing.')}
-    </p>{:else}
-    <label
-      >{$t('CSV file')}<input
-        type="file"
-        accept=".csv,.tsv,text/csv,text/tab-separated-values"
-        onchange={fileChosen}
-      /></label
+  {#if error}<p class="error" role="alert">{$feedback(error)}</p>{/if}
+  {#if notice}<p class="notice" role="status">{$feedback(notice)}</p>{/if}
+  {#if !$data?.state.vehicles.length}
+    <p>{$t('Add a vehicle before importing.')}</p>
+    <a class="button secondary" href={resolve('/settings#vehicle-setup')}
+      >{$t('Add your first vehicle')}</a
     >
-    {#if source}<div class="grid">
+  {:else}
+    <div
+      class="file-drop"
+      role="region"
+      aria-label={$t('Drop CSV file')}
+      ondragover={(e) => e.preventDefault()}
+      ondrop={dropFile}
+    >
+      <strong>{$t('Drop a CSV file here')}</strong>
+      <p>
+        {$t(
+          'Or choose a file. Your file stays in this browser until you request the import review.'
+        )}
+      </p>
+      <label
+        >{$t('CSV file')}<input
+          type="file"
+          accept=".csv,.tsv,text/csv,text/tab-separated-values"
+          onchange={fileChosen}
+        /></label
+      >
+      {#if filename}<small>{filename}</small>{/if}
+    </div>
+    {#if source}
+      <div class="grid source-controls">
         <label
-          >{$t('Delimiter')}<select bind:value={delimiter} onchange={inspect}
+          >{$t('Delimiter')}<select
+            bind:value={delimiter}
+            onchange={() => {
+              mappings = {};
+              activeColumn = null;
+            }}
             ><option value=",">{$t('Comma')}</option><option value=";"
               >{$t('Semicolon')}</option
             ><option value="&#9;">{$t('Tab')}</option></select
@@ -213,8 +309,7 @@
         >
         <label
           >{$t('Date format')}<select bind:value={dateFormat}
-            >{#each ['DD.MM.YYYY', 'YYYY-MM-DD', 'MM/DD/YYYY'] as format (format)}<option
-                >{format}</option
+            >{#each dateFormats as format (format)}<option>{format}</option
               >{/each}</select
           ></label
         >
@@ -222,8 +317,8 @@
           >{$t('Table type')}<select
             bind:value={kind}
             onchange={() => {
-              rows = [];
               mappings = {};
+              activeColumn = null;
             }}
             ><option value="fuel">{$t('Fuel')}</option><option value="expense"
               >{$t('Expenses / upkeep')}</option
@@ -237,47 +332,166 @@
             min="2"
             bind:value={first}
           /></label
-        ><label
+        >
+        <label
           >{$t('Last data row (0 = end)')}<input
             type="number"
             min="0"
             bind:value={last}
           /></label
         >
+        <label
+          >{$t('Source distance unit')}<select bind:value={distanceUnit}
+            >{#each ['km', 'mi'] as unit (unit)}<option>{unit}</option
+              >{/each}</select
+          ></label
+        >
+        <label
+          >{$t('Source fuel unit')}<select bind:value={fuelUnit}
+            >{#each ['L', 'US gal', 'Imp gal'] as unit (unit)}<option
+                >{unit}</option
+              >{/each}</select
+          ></label
+        >
         {#if kind !== 'fuel'}<label
             >{$t('Default category')}<select bind:value={defaultCategory}
-              >{#each ['repair', 'service', 'tyres', 'inspection', 'parts', 'purchase', 'insurance', 'tax', 'lease', 'other'] as category (category)}<option
+              >{#each ['repair', 'service', 'tyres', 'inspection', 'parts', 'purchase', 'insurance', 'tax', 'lease', 'parking', 'toll', 'other'] as category (category)}<option
                   value={category}>{$t(category)}</option
                 >{/each}</select
             ></label
           >{/if}
       </div>
-      <p>
-        <small
-          >{$t('Source measurements use the current installation units:')}
-          {$data!.state.settings.distance_unit}, {$data!.state.settings
-            .fuel_unit}, {$data!.state.settings.currency}{$t(
-            '. Change units before import if needed; existing records are converted, not relabelled.'
-          )}</small
-        >
+      <p class="muted">
+        {$t(
+          'Source currency: {currency}. Amounts are not converted between currencies.',
+          { currency: $data!.state.settings.currency }
+        )}
       </p>
-      <div class="grid">
-        {#each fields as field (field)}<label
-            >{$t(names[field])}
-            {$t('column')}<select
-              value={mappings[field] ?? -1}
-              onchange={(e) =>
-                (mappings[field] = Number(e.currentTarget.value))}
-              ><option value="-1">{$t('Not mapped · preserve source')}</option
-              >{#each headers as header, i (i)}<option value={i}
-                  >{i + 1}: {header || $t('(unnamed)')}</option
-                >{/each}</select
-            ></label
-          >{/each}
-      </div>
-      <button class="secondary" disabled={busy} onclick={preview}
-        >{$t('Preview import')}</button
-      >
+      {#if inspection.error}<p class="error" role="alert">
+          {$feedback(inspection.error)}
+        </p>{:else}
+        <h3>{$t('Source columns')}</h3>
+        <p class="muted">
+          {$t(
+            'Drag a column onto a field, or select a column and choose its field. Dropdowns also work with touch and keyboard.'
+          )}
+        </p>
+        <div class="source-columns">
+          {#each headers as header, i (i)}
+            <button
+              class="secondary source-column"
+              class:chosen={activeColumn === i}
+              draggable="true"
+              aria-label={$t('Use column {number}: {header}', {
+                number: i + 1,
+                header: header || $t('(unnamed)')
+              })}
+              aria-pressed={activeColumn === i}
+              onclick={() => (activeColumn = activeColumn === i ? null : i)}
+              ondragstart={(e) => {
+                e.dataTransfer?.setData(
+                  'application/x-roadbook-column',
+                  String(i)
+                );
+                activeColumn = i;
+              }}
+            >
+              <strong>{i + 1}: {header || $t('(unnamed)')}</strong>
+              {#each examples as sample (sample.source_row)}<span
+                  >{inspection.cells[sample.source_row - 1]?.[i] || '—'}</span
+                >{/each}
+            </button>
+          {/each}
+        </div>
+        {#each groups as group (group.name)}
+          <fieldset class="mapping-group">
+            <legend>{$t(group.name)}</legend>
+            <div class="mapping-fields">
+              {#each group.fields as field (field)}
+                <div
+                  class="mapping-target"
+                  data-field={field}
+                  role="group"
+                  aria-label={$t(names[field])}
+                  ondragover={(e) => e.preventDefault()}
+                  ondrop={(e) => dropColumn(e, field)}
+                >
+                  <button
+                    class="secondary"
+                    disabled={activeColumn === null}
+                    aria-label={$t('Map {field}', { field: $t(names[field]) })}
+                    onclick={() => {
+                      if (activeColumn !== null) {
+                        mappings[field] = activeColumn;
+                        activeColumn = null;
+                      }
+                    }}>{$t(names[field])}</button
+                  >
+                  <label
+                    >{$t(names[field])}
+                    {$t('column')}
+                    <select
+                      value={mappings[field] ?? -1}
+                      onchange={(e) =>
+                        (mappings[field] = Number(e.currentTarget.value))}
+                    >
+                      <option value="-1"
+                        >{$t('Not mapped · preserve source')}</option
+                      >
+                      {#each headers as header, i (i)}<option value={i}
+                          >{i + 1}: {header || $t('(unnamed)')}</option
+                        >{/each}
+                    </select>
+                  </label>
+                  {#if (mappings[field] ?? -1) >= 0}<button
+                      class="text-button"
+                      onclick={() => {
+                        mappings[field] = -1;
+                      }}
+                      aria-label={$t('Clear {field}', {
+                        field: $t(names[field])
+                      })}>{$t('Clear mapping')}</button
+                    >{/if}
+                </div>
+              {/each}
+            </div>
+          </fieldset>
+        {/each}
+        <h3>{$t('Live examples')}</h3>
+        <p class="muted">
+          {$t(
+            'Unsaved examples · Values update as you map columns. Nothing has been imported.'
+          )}
+        </p>
+        {#if !examples.length}<p>{$t('No source rows in this range.')}</p>{/if}
+        <div class="example-entries">
+          {#each examples as sample (sample.source_row)}
+            <article
+              class="panel history-entry import-example"
+              class:incomplete={sample.issues.length > 0}
+            >
+              <small
+                >{$t('Source row')}
+                {sample.source_row} · {$t('Unsaved example')}</small
+              >
+              <EntrySummary
+                entry={sample.entry}
+                settings={$data!.state.settings}
+              />
+              {#if sample.issues.length}<ul class="muted">
+                  {#each sample.issues as issue (issue)}<li>
+                      {$feedback(issue)}
+                    </li>{/each}
+                </ul>{/if}
+            </article>
+          {/each}
+        </div>
+        <button
+          class="secondary"
+          disabled={busy || !examples.length}
+          onclick={preview}>{$t('Preview import')}</button
+        >
+      {/if}
     {/if}
     {#if rows.length}<h3>{$t('Review')} {rows.length} {$t('rows')}</h3>
       <p>
@@ -448,7 +662,9 @@
           'I reviewed matching existing records and want to allow them'
         )}</label
       >
-      <button disabled={busy || !selected.length} onclick={commit}
+      <button
+        disabled={busy || !selected.length || reviewKey !== signature}
+        onclick={commit}
         >{$t('Import {count} selected rows', {
           count: selected.length
         })}</button
