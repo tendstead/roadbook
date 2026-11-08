@@ -5,6 +5,8 @@
 node_modules/
 web/.svelte-kit/
 web/build/
+web/static/license.txt
+web/static/third-party-notices.txt
 cmd/server/static/*
 !cmd/server/static/.gitkeep
 coverage/

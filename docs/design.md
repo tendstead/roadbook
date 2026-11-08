@@ -105,6 +105,9 @@ vehicle if more than one is available. Hide profile/sharing/payer controls when
 only one profile exists. Settings supports first vehicle, profiles, membership,
 units, schedules, CSV import/export and backup guidance. No offline write queue.
 Never imply an unsaved form is stored; retain form values on recoverable errors.
+English/German interface language is detected from the browser on first use and
+can be overridden per browser in Settings. Localize presentation and known feedback,
+keeping stored values, units and CSV interpretation independent; see [i18n](i18n.md).
 
 Overview: monthly fuel spending bars, consumption/fuel-cost cards, total-expense
 card, upkeep/month, yearly distance display, recent entries and gap explanations.
@@ -116,8 +119,19 @@ columns. All rows preview as valid/warning/error; block invalid selected rows;
 allow deselection. Preserve unmapped cells as extra data unless explicitly ignored.
 Summary cells are not silently treated as itemized records. Commit in one DB
 transaction with a content+mapping+vehicle fingerprint and per-row keys. Repeat
-commit is idempotent; warn about matching existing records. Never force unknown
-tank status to full. Export complete records and metadata with explicit units.
+commit is idempotent; warn about matching existing records. Unspecified API tank
+status remains unknown; import assumptions are visible in the fill-type control. Export complete records and metadata with explicit units.
+
+The v1 guided import workspace lives at Settings → Import (`/settings#import`).
+An empty-history banner links there until the first fuel or expense record exists.
+Read dropped/selected CSV files in the browser, show compact source-header chips
+with two raw examples for the selected column, and map through drag, click or
+accessible dropdowns. Destination fields use compact rows; optional details and
+format settings start collapsed with an interpretation summary. A short hint
+explains that selecting a chip reveals example values. Explicit source formats
+and units drive two unsaved examples using the shared history-entry presentation.
+No source is sent until server review is requested; interpretation/context changes
+invalidate review. See [workspace design](superpowers/specs/2026-11-08-import-workspace-design.md).
 
 Attachments accept JPEG/PNG/WebP, validate actual decoding, correct orientation,
 retain original bytes, cap each file at 20 MiB and decoded image at 40 megapixels.
@@ -145,3 +159,22 @@ mobile/desktop first use and shared-vehicle flows. Isolate test DBs/volumes and
 resource limits. Full checks include formatting, lint/types, vet/audits, unit and
 service tests, e2e, production build and workflow lint. Real exports are local
 acceptance input only, never fixtures or repository configuration.
+
+## Fill interpretation and overview interactions
+
+Visible fuel labels use “Filled to full?” and full/partial fill wording. A CSV
+batch override is an explicit user assertion, not an inference from a missing
+column. It updates local and server previews, retains source cells/provenance and
+allows per-row corrections. A newly selected file resets the batch assertion.
+
+Custom SVG overview charts show five value-labelled grid levels from zero to the
+maximum, responsive non-overlapping period labels, and hover/focus/tap tooltips.
+Exact values remain in a screen-reader-accessible table without a visible
+“View values” disclosure. The header sun/moon control stores light/dark preference
+per browser, initially following the device, using the published shared theme.
+
+The user-requested CSV import default is “All fills were full,” preselected when
+choosing each file. It is shown explicitly in local examples and server review,
+with per-row correction and CSV/partial/unknown alternatives retained. This is a
+UI default for the reviewed import, not a change to unspecified API values or
+existing records. Full-fill is listed first in the import review dropdown.

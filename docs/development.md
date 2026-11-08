@@ -59,5 +59,5 @@ repository visibility explicitly. Verify exact status-check names after CI runs.
 These are setup instructions, not settings already applied.
 
 CI uses read-only permissions and runs on PRs, default-branch pushes, and manual
-request. Do not grant publishing credentials to PR checks. The inactive release
-template and activation steps are documented in deployment.md.
+request. Do not grant publishing credentials to PR checks. The manual-only release
+workflow and publication steps are documented in deployment.md.

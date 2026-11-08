@@ -3,9 +3,9 @@
 A Tendstead car ownership log: fuel, repairs, maintenance, and a graphical view
 of running costs and consumption. **Roadbook is the agreed working name.**
 
-The application foundation is runnable; vehicle features are being implemented
-against [the design](docs/design.md). The original [idea](idea.md) is historical
-context, not the current implementation status.
+Roadbook tracks vehicle history, fuel, upkeep and ownership costs. It follows
+[the agreed design](docs/design.md). The original [idea](idea.md) is historical
+context.
 
 Planning in progress: [v1.0 product decisions](docs/product-plan.md) and the
 separate [v1.1 vision-bill connection](docs/vision-bill-v1.1-plan.md).
@@ -50,9 +50,14 @@ scripts/                   release tooling
 docs/                      architecture, development and deployment notes
 ```
 
-The baseline supplies the shared shell, API health/readiness, SQL migrations,
-static production build and isolated application tests. See the design and
-implementation plan for the full feature scope.
+The app includes passwordless profiles, per-vehicle sharing, manual fuel and
+expense records, recurring charges, persistent original images and thumbnails,
+reviewed CSV imports, JSON export, monthly spending and annual-distance charts.
+Unknown fuel data is highlighted and excluded from unreliable consumption ratios.
+English and German are available under Settings → Language, with a per-browser
+preference. Dates and amounts follow the selected language; CSV formats remain
+explicit. See [language support](docs/i18n.md).
+Vision-bill integration is planned separately for v1.1.
 
 ## Run and verify
 
@@ -60,10 +65,19 @@ Install Docker Compose and Make, run `make deps`, copy `.env.example` to `.env`,
 set a random database password, then run `make up`. Open `http://127.0.0.1:8082`.
 For an existing dedicated database use `docker compose -f compose.external.yaml`.
 
-`make check` / `make app-check` verify formatting, lint/types, Go vet, dependency
+`make check` verifies formatting, lint/types, Go vet, dependency
 audits, unit tests, isolated PostgreSQL tests, mobile/desktop browser flows,
-the production build and workflow syntax. `make hooks` installs pre-commit hooks
-(requires pre-commit locally). No automatic publishing or deployment is enabled.
+the production build, backup/restore and workflow syntax. `make app-check` first
+installs locked dependencies, then runs the same suite. `make hooks` installs
+pre-commit hooks (requires pre-commit locally). Publishing is manual only;
+publishing never deploys.
+
+Profiles are not authentication: keep Roadbook on a trusted network/VPN or behind
+an authenticated reverse proxy. Images accept JPEG, PNG and WebP (20 MiB each);
+HEIC/PDF conversion and offline write queues are not included. Currency is one of
+EUR/USD/GBP/CHF/CAD/AUD per installation and locks after entries or schedules exist.
+
+[API](docs/api.md) · [Backup and restore](docs/recovery.md)
 
 [Development and Git flow](docs/development.md) ·
 [Release and deployment](docs/deployment.md) ·

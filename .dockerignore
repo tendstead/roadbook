@@ -27,6 +27,8 @@ private-data
 coverage
 test-results
 playwright-report
+**/test-results
+**/playwright-report
 .superpowers
 .worktrees
 **/*.csv

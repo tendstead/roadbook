@@ -29,6 +29,14 @@ The root `LICENSE` is the unmodified Elastic License 2.0 text obtained from
 Third-party dependencies retain their own licenses; audit and preserve required
 notices when implementation selects dependencies.
 
+Builds collect published runtime dependency license/notice files into
+`/third-party-notices.txt`; Go module and toolchain notices are appended when
+building the server image. is-reference and locate-character declare MIT but
+publish no standalone license file (also checked against their upstream repos);
+their README, author and repository attribution are retained explicitly instead
+of inventing a copyright notice. Original project LICENSE and NOTICE are also
+included in the image.
+
 No live vision-bill integration contract, remote repository state, registry image,
 package version availability or deployment infrastructure was verified. Reinspect
 actual interfaces and toolchain compatibility at implementation time.

@@ -1,7 +1,7 @@
 services:
   app:
     build: .
-    ports: ["127.0.0.1:${ROADBOOK_PORT:-8082}:8080"]
+    ports: ["${ROADBOOK_BIND:-127.0.0.1}:${ROADBOOK_PORT:-8082}:8080"]
     environment:
       DATABASE_URL: postgres://roadbook:${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}@db:5432/roadbook?sslmode=disable
     volumes: ["attachments:/data"]
