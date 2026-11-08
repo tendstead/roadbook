@@ -158,10 +158,10 @@
         ></label
       >
       <label
-        >{$t('Tank status')}<select bind:value={draft.tank}
+        >{$t('Filled to full?')}<select bind:value={draft.tank}
           ><option value="unknown">{$t('Unknown')}</option><option value="full"
-            >{$t('Full')}</option
-          ><option value="partial">{$t('Partial')}</option></select
+            >{$t('Full fill')}</option
+          ><option value="partial">{$t('Partial fill')}</option></select
         ></label
       >
       <label

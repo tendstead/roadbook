@@ -14,7 +14,7 @@
   );
   const currentYear = new Date().getFullYear().toString();
   const colors = [
-    '#6750a4',
+    'var(--ts-primary)',
     '#137c8b',
     '#b8662d',
     '#3a7c51',
@@ -104,6 +104,7 @@
     <Chart
       title={$t('Fuel spending by month')}
       unit={settings.currency}
+      currency={settings.currency}
       bars
       series={[
         {

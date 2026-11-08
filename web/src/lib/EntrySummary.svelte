@@ -39,8 +39,14 @@
             value: $fmt.measurement(entry.odometer_m, settings.distance_unit),
             unit: settings.distance_unit
           })
-        : $t('Distance unknown')} · {$t('Tank: {status}', {
-      status: $t(entry.tank)
+        : $t('Distance unknown')} · {$t('Fill type: {status}', {
+      status: $t(
+        entry.tank === 'full'
+          ? 'Full fill'
+          : entry.tank === 'partial'
+            ? 'Partial fill'
+            : 'Unknown'
+      )
     })}
   </p>{/if}
 {#if entry.gap || (entry.tank === 'unknown' && entry.kind === 'fuel') || (entry.volume_ml === null && entry.kind === 'fuel')}<p

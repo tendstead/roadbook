@@ -72,3 +72,9 @@ a temporary filesystem failure does not permanently orphan deleted images.
 Invalid imported numbers require correction or an explicit unknown-value choice.
 An invalid recurring end date must be corrected or explicitly accepted as an
 indefinite schedule; it is never silently discarded.
+
+Fuel CSV specs optionally accept `tank_override` (`full`, `partial`, `unknown`).
+Omit it to respect mapped values and retain unknown when not mapped. An explicit
+override applies to every source row, is included in the import fingerprint and
+is recorded as `import:tank_override` source metadata. Source cells are preserved;
+users may still correct individual reviewed rows before commit.

@@ -34,6 +34,7 @@
   let first = $state(2);
   let last = $state(0);
   let defaultCategory = $state('repair');
+  let tankOverride = $state('');
   let mappings = $state<Record<string, number>>({});
   let activeColumn = $state<number | null>(null);
   let rows = $state<Row[]>([]);
@@ -71,7 +72,8 @@
     fuel_unit: fuelUnit,
     start_row: Number(first),
     end_row: Number(last),
-    columns
+    columns,
+    tank_override: kind === 'fuel' ? tankOverride : ''
   });
   const signature = $derived(
     JSON.stringify({
@@ -138,7 +140,7 @@
     volume_ml: 'Fuel volume',
     distance_m: 'Distance driven',
     odometer_m: 'Total odometer',
-    tank: 'Tank status',
+    tank: 'Filled to full?',
     gap: 'Missing-record flag',
     station: 'Station',
     fuel_type: 'Fuel type',
@@ -155,6 +157,7 @@
     notice = '';
     source = '';
     filename = '';
+    tankOverride = '';
     mappings = {};
     activeColumn = null;
     if (file.size > 1500000) {
@@ -287,6 +290,28 @@
       {#if filename}<small>{filename}</small>{/if}
     </div>
     {#if source}
+      {#if kind === 'fuel'}
+        <label
+          >{$t('Fill type for this import')}
+          <select
+            bind:value={tankOverride}
+            aria-label={$t('Fill type for this import')}
+            aria-describedby="fill-override-help"
+          >
+            <option value=""
+              >{$t('Use CSV values · unknown when not mapped')}</option
+            >
+            <option value="full">{$t('All fills were full')}</option>
+            <option value="partial">{$t('All fills were partial')}</option>
+            <option value="unknown">{$t('Mark all as unknown')}</option>
+          </select>
+          <small id="fill-override-help"
+            >{$t(
+              'A full fill means you filled the tank completely. This choice overrides the mapped column; individual rows can still be corrected in review.'
+            )}</small
+          >
+        </label>
+      {/if}
       <div class="grid source-controls">
         <label
           >{$t('Delimiter')}<select
@@ -507,8 +532,8 @@
                 >{$t('Date')}</th
               ><th>{$t('Amount')}</th>{#if kind === 'fuel'}<th
                   >{$t('Volume')}</th
-                ><th>{$t('Distance')}</th><th>{$t('Tank')}</th>{:else}<th
-                  >{$t('Category')}</th
+                ><th>{$t('Distance')}</th><th>{$t('Filled to full?')}</th
+                >{:else}<th>{$t('Category')}</th
                 >{/if}{#if kind === 'schedule'}<th>{$t('Frequency')}</th><th
                   >{$t('Last due date')}</th
                 >{/if}<th>{$t('Source issues')}</th></tr
@@ -587,11 +612,14 @@
                     /></td
                   ><td
                     ><select
-                      aria-label={$t('Tank row {row}', { row: row.source_row })}
+                      aria-label={$t('Fill type row {row}', {
+                        row: row.source_row
+                      })}
                       bind:value={row.entry.tank}
                       ><option value="unknown">{$t('Unknown')}</option><option
-                        value="full">{$t('Full')}</option
-                      ><option value="partial">{$t('Partial')}</option></select
+                        value="full">{$t('Full fill')}</option
+                      ><option value="partial">{$t('Partial fill')}</option
+                      ></select
                     ></td
                   >{:else}<td
                     ><select

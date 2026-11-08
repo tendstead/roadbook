@@ -1,4 +1,5 @@
 <script lang="ts">
+  import ThemeToggle from '../lib/ThemeToggle.svelte';
   import { resolve } from '$app/paths';
   import { translator as t, feedback, initializeLanguage } from '../lib/i18n';
   import { AppShell } from '@tendstead/ui';
@@ -50,6 +51,7 @@
   mobilePrimaryIds={['overview', 'fuel', 'costs']}
   primaryAction={{ id: 'add-fuel', label: $t('Add fuel'), href: '/fuel?new=1' }}
 >
+  {#snippet pageActions()}<ThemeToggle />{/snippet}
   {#if $appError}<div class="error" role="alert">
       {$feedback($appError)}
       <button class="secondary" onclick={() => reload().catch(() => {})}

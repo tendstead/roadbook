@@ -18,6 +18,7 @@ export interface ImportConfig {
   end_row: number;
   columns: Record<string, number>;
   default_category?: string;
+  tank_override?: string;
 }
 export interface LocalPreview {
   source_row: number;
@@ -161,6 +162,8 @@ export function previewRows(
           issues.push(
             'Unrecognized tank status retained in source cells; marked unknown'
           );
+        if (['full', 'partial', 'unknown'].includes(spec.tank_override || ''))
+          entry.tank = spec.tank_override!;
         if (entry.amount_minor !== null && entry.amount_minor < 0)
           issues.push('use an expense refund for negative costs');
         if (

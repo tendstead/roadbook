@@ -13,7 +13,7 @@ test('vehicle setup, full-to-full fuel and upkeep survive reload', async ({
   await page.getByLabel('Date', { exact: true }).fill('2025-01-01');
   await page.getByRole('textbox', { name: /^Volume/ }).fill('40');
   await page.getByRole('textbox', { name: /^Total paid/ }).fill('70');
-  await page.getByLabel('Tank status').selectOption('full');
+  await page.getByLabel('Filled to full?').selectOption('full');
   await page.getByRole('button', { name: 'Save fuel', exact: true }).click();
   await expect(page.getByText('Fuel saved')).toBeVisible();
   await page
@@ -23,7 +23,7 @@ test('vehicle setup, full-to-full fuel and upkeep survive reload', async ({
   await page.getByRole('textbox', { name: /^Distance driven/ }).fill('500.1');
   await page.getByRole('textbox', { name: /^Volume/ }).fill('30');
   await page.getByRole('textbox', { name: /^Total paid/ }).fill('60');
-  await page.getByLabel('Tank status').selectOption('full');
+  await page.getByLabel('Filled to full?').selectOption('full');
   await page.getByRole('button', { name: 'Save fuel', exact: true }).click();
   await expect(page.getByText('Fuel saved')).toBeVisible();
   await page.goto('/');

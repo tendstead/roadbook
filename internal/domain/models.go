@@ -110,7 +110,8 @@ func (r Record) Validate() error {
 	if !ValidID(r.VehicleID) || !ValidID(r.PayerID) || !ValidDate(r.Date) {
 		return errors.New("vehicle, payer and valid date required")
 	}
-	if len(r.Notes) > 20000 || len(r.Description) > 1000 || len(r.Station) > 200 || len(r.Extra) > 100 {
+	// Up to 100 original CSV cells plus bounded import provenance/corrections.
+	if len(r.Notes) > 20000 || len(r.Description) > 1000 || len(r.Station) > 200 || len(r.Extra) > 128 {
 		return errors.New("text too long")
 	}
 	if r.AmountMinor != nil && (*r.AmountMinor < -1e12 || *r.AmountMinor > 1e12) {

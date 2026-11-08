@@ -27,6 +27,7 @@ type ImportSpec struct {
 	StartRow     int            `json:"start_row"`
 	EndRow       int            `json:"end_row"`
 	Columns      map[string]int `json:"columns"`
+	TankOverride string         `json:"tank_override,omitempty"`
 }
 type ImportRow struct {
 	SourceRow     int               `json:"source_row"`
@@ -112,6 +113,9 @@ func importDate(s, format string) (string, error) {
 	return value, nil
 }
 func PreviewImport(spec ImportSpec) ([]ImportRow, error) {
+	if spec.TankOverride != "" && spec.TankOverride != "full" && spec.TankOverride != "partial" && spec.TankOverride != "unknown" {
+		return nil, errors.New("choose full, partial or unknown tank status")
+	}
 	if len(spec.CSV) > 1500000 {
 		return nil, errors.New("CSV exceeds 1.5 MB; split into smaller imports")
 	}
@@ -223,6 +227,10 @@ func PreviewImport(spec ImportSpec) ([]ImportRow, error) {
 				result.Warnings = append(result.Warnings, "Unrecognized tank status retained in source cells; marked unknown")
 			}
 			r.Gap = strings.EqualFold(get("gap"), "true") || get("gap") == "1"
+			if spec.TankOverride != "" {
+				r.Tank = spec.TankOverride
+				r.Extra["import:tank_override"] = spec.TankOverride
+			}
 			if r.VolumeML == nil || r.DistanceM == nil && r.OdometerM == nil || r.Tank == "unknown" {
 				result.Warnings = append(result.Warnings, "Incomplete fuel measurements or unknown tank status; consumption may be unavailable")
 			}

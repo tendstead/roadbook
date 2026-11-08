@@ -57,7 +57,7 @@ and `/api/ready` checks PostgreSQL. Startup applies versioned SQL migrations in 
 transaction under an advisory lock; failed migrations prevent startup.
 
 Use a multi-stage Node → Go → non-root runtime image with embedded SPA assets.
-Choose port 8082 on loopback as a proposed local default to reduce overlap with
+Choose port 8082 on loopback as the local default to reduce overlap with
 existing apps; verify actual availability when deploying. Default to private
 access pending the auth decision. PostgreSQL has no host port, with a dedicated
 Roadbook database/user and persistent volume. An existing PostgreSQL server can
@@ -80,3 +80,15 @@ Never use `docker compose down -v` on a real data stack as an upgrade procedure.
 
 Local test images are built by verification. No image is published or real service
 deployed as part of development. Existing sibling services remain untouched.
+
+## Phone testing on the local network
+
+Set `ROADBOOK_BIND=0.0.0.0` (or a specific LAN interface address) in the ignored
+`.env`, then run `docker compose -p roadbook up -d --build --no-deps app`.
+The default remains `127.0.0.1`. Open `http://<host-LAN-IP>:8082` from a phone on
+that network; `ROADBOOK_PORT` can select another port. This changes Roadbook's
+HTTP publication only; PostgreSQL remains private to the Docker network.
+
+This passwordless installation allows reachable users to switch profiles. Limit
+LAN access to trusted devices; HTTP does not encrypt records or sessions. No host
+firewall, router forwarding or sibling-service configuration is changed here.

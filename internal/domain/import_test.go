@@ -1,6 +1,37 @@
 package domain
 
-import "testing"
+import (
+	"strings"
+	"testing"
+)
+
+func TestFillOverridePreservesMaximumWidthCSV(t *testing.T) {
+	spec := ImportSpec{CSV: "date," + strings.Repeat("source,", 98) + "last\n2025-01-01," + strings.Repeat("value,", 98) + "last value", Delimiter: ",", Decimal: ".", DateFormat: "YYYY-MM-DD", Kind: "fuel", VehicleID: NewID(), PayerID: NewID(), DistanceUnit: "km", FuelUnit: "L", StartRow: 2, Columns: map[string]int{"date": 0}, TankOverride: "full"}
+	rows, err := PreviewImport(spec)
+	if err != nil || len(rows) != 1 || len(rows[0].Errors) != 0 || len(rows[0].Entry.Extra) != 101 || rows[0].Entry.Extra["100:last"] != "last value" {
+		t.Fatalf("maximum-width source rejected or lost: %+v %v", rows, err)
+	}
+}
+
+func TestImportFillOverrideIsExplicitAndPreservesSource(t *testing.T) {
+	spec := ImportSpec{CSV: "date,litres,km,fill\n2025-01-01,40,500,partial", Delimiter: ",", Decimal: ".", DateFormat: "YYYY-MM-DD", Kind: "fuel", DistanceUnit: "km", FuelUnit: "L", VehicleID: NewID(), PayerID: NewID(), StartRow: 2, Columns: map[string]int{"date": 0, "volume_ml": 1, "distance_m": 2, "tank": 3}}
+	before := spec.Fingerprint()
+	spec.TankOverride = "full"
+	rows, err := PreviewImport(spec)
+	if err != nil || rows[0].Entry.Tank != "full" || rows[0].Entry.Extra["4:fill"] != "partial" || rows[0].Entry.Extra["import:tank_override"] != "full" || before == spec.Fingerprint() {
+		t.Fatalf("override/source/fingerprint mismatch: %+v %v", rows, err)
+	}
+	delete(spec.Columns, "tank")
+	spec.TankOverride = ""
+	rows, err = PreviewImport(spec)
+	if err != nil || rows[0].Entry.Tank != "unknown" {
+		t.Fatal("unmapped fullness must remain unknown", err)
+	}
+	spec.TankOverride = "guessed"
+	if _, err = PreviewImport(spec); err == nil {
+		t.Fatal("invalid override accepted")
+	}
+}
 
 func TestImportExplicitAdditionalDateFormats(t *testing.T) {
 	for _, tc := range []struct{ value, format, want string }{

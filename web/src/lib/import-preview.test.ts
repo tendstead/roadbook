@@ -11,6 +11,22 @@ const config: ImportConfig = {
   end_row: 0,
   columns: { date: 0, amount_minor: 1, volume_ml: 2, distance_m: 3, notes: 4 }
 };
+
+test('explicit batch fill choice overrides mapped values and clearing restores source', () => {
+  const cells = [
+    ['Date', 'Fill'],
+    ['01/01/2025', 'partial']
+  ];
+  const spec = {
+    ...config,
+    columns: { date: 0, tank: 1 },
+    tank_override: 'full'
+  };
+  expect(previewRows(cells, spec)[0].entry.tank).toBe('full');
+  expect(previewRows(cells, { ...spec, tank_override: '' })[0].entry.tank).toBe(
+    'partial'
+  );
+});
 test('local examples preserve exact localized money, units and unknown tank status', () => {
   const cells = inspectCSV(
     'Date;Paid;Litres;Km;Notes\n04/05/2025;1.234,56 €;30,125;500,1;keep\n05/05/2025;-;-;;missing\n06/05/2025;3;2;1;third',

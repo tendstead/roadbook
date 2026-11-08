@@ -156,3 +156,16 @@ mobile/desktop first use and shared-vehicle flows. Isolate test DBs/volumes and
 resource limits. Full checks include formatting, lint/types, vet/audits, unit and
 service tests, e2e, production build and workflow lint. Real exports are local
 acceptance input only, never fixtures or repository configuration.
+
+## Fill interpretation and overview interactions
+
+Visible fuel labels use “Filled to full?” and full/partial fill wording. A CSV
+batch override is an explicit user assertion, not an inference from a missing
+column. It updates local and server previews, retains source cells/provenance and
+allows per-row corrections. A newly selected file resets the batch assertion.
+
+Custom SVG overview charts show five value-labelled grid levels from zero to the
+maximum, responsive non-overlapping period labels, and hover/focus/tap tooltips.
+Exact values remain in a screen-reader-accessible table without a visible
+“View values” disclosure. The header sun/moon control stores light/dark preference
+per browser, initially following the device, using the published shared theme.

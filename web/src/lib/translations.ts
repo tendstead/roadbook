@@ -1,5 +1,23 @@
 // English source messages are keys. User and imported content is never translated.
 export const german: Record<string, string> = {
+  'Filled to full?': 'Vollgetankt?',
+  'Full fill': 'Vollgetankt',
+  'Partial fill': 'Teilbetankung',
+  'Fill type for this import': 'Betankungsart für diesen Import',
+  'Use CSV values · unknown when not mapped':
+    'CSV-Werte verwenden · ohne Zuordnung unbekannt',
+  'All fills were full': 'Bei allen Einträgen vollgetankt',
+  'All fills were partial': 'Alle Einträge sind Teilbetankungen',
+  'Mark all as unknown': 'Alle als unbekannt markieren',
+  'A full fill means you filled the tank completely. This choice overrides the mapped column; individual rows can still be corrected in review.':
+    'Vollgetankt bedeutet, dass der Tank vollständig gefüllt wurde. Diese Auswahl überschreibt die zugeordnete Spalte; einzelne Zeilen lassen sich in der Prüfung korrigieren.',
+  'Fill type row {row}': 'Betankungsart Zeile {row}',
+  'Fill type: {status}': 'Betankungsart: {status}',
+  'Hover, focus or tap a bar or point for its value.':
+    'Zeige auf einen Balken oder Punkt, fokussiere ihn per Tastatur oder tippe ihn an, um den Wert zu sehen.',
+  'Switch to light mode': 'Zum hellen Design wechseln',
+  'Switch to dark mode': 'Zum dunklen Design wechseln',
+
   'CSV contains invalid quoting':
     'Die CSV-Datei enthält ungültige Anführungszeichen',
   'Import existing history': 'Vorhandene Historie importieren',
