@@ -235,9 +235,6 @@
             ><span style:color={s.color}>●</span> {s.name}</small
           >{/each}
       </div>{/if}
-    <p class="muted chart-hint">
-      {$t('Hover, focus or tap a bar or point for its value.')}
-    </p>
     <div class="sr-only">
       <table>
         <caption>{title} · {unit}</caption><thead

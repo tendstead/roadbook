@@ -416,9 +416,6 @@ dialog::backdrop {
   z-index: 1;
   overflow-wrap: anywhere;
 }
-.chart-hint {
-  font-size: 0.8rem;
-}
 .sr-only {
   position: absolute;
   width: 1px;

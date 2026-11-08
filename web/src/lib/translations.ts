@@ -13,8 +13,6 @@ export const german: Record<string, string> = {
     'Vollgetankt bedeutet, dass der Tank vollständig gefüllt wurde. Diese Auswahl überschreibt die zugeordnete Spalte; einzelne Zeilen lassen sich in der Prüfung korrigieren.',
   'Fill type row {row}': 'Betankungsart Zeile {row}',
   'Fill type: {status}': 'Betankungsart: {status}',
-  'Hover, focus or tap a bar or point for its value.':
-    'Zeige auf einen Balken oder Punkt, fokussiere ihn per Tastatur oder tippe ihn an, um den Wert zu sehen.',
   'Switch to light mode': 'Zum hellen Design wechseln',
   'Switch to dark mode': 'Zum dunklen Design wechseln',
 
