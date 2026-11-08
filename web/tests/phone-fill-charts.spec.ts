@@ -227,7 +227,11 @@ test('fuel history fits compact rows while keeping source details and editing ac
             amount_minor: 5000,
             tank: 'full',
             notes: 'Station note',
-            extra: { '1:source': 'kept' }
+            extra: {
+              '10:later': 'tenth',
+              '2:second': 'second',
+              '1:source': 'kept'
+            }
           }
         })
       ).ok()
@@ -272,6 +276,11 @@ test('fuel history fits compact rows while keeping source details and editing ac
   await row.getByRole('button', { name: 'Keep entry', exact: true }).click();
   await row.getByText('Imported source information', { exact: true }).click();
   await expect(row.getByText('kept', { exact: true })).toBeVisible();
+  await expect(row.locator('dt')).toHaveText([
+    '1:source',
+    '2:second',
+    '10:later'
+  ]);
   await row.getByRole('button', { name: 'Edit', exact: true }).click();
   await expect(
     page.getByRole('heading', { name: 'Edit', exact: true })

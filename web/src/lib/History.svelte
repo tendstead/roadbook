@@ -11,6 +11,7 @@
     type Entry
   } from './api';
   import EntrySummary from './EntrySummary.svelte';
+  import { sourceInformation } from './source-information';
   import EntryForm from './EntryForm.svelte';
   import Attachments from './Attachments.svelte';
   let { kind }: { kind: string } = $props();
@@ -111,7 +112,7 @@
           {#if entry.extra}<details>
               <summary>{$t('Imported source information')}</summary>
               <dl>
-                {#each Object.entries(entry.extra) as [key, value] (key)}<dt>
+                {#each sourceInformation(entry.extra) as [key, value] (key)}<dt>
                     {key}
                   </dt>
                   <dd>{value}</dd>{/each}
