@@ -1,0 +1,7 @@
+Roadbook
+Copyright 2026 Alexander Heinecke
+
+Roadbook-original material is licensed under Elastic License 2.0.
+The shared @tendstead/ui package and other third-party dependencies retain their
+own licenses. Their notices must be preserved when redistributing dependencies.
+Source provenance for inherited release tooling is recorded in docs/references.md.

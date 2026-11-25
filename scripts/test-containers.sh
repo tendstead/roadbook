@@ -1,6 +1,7 @@
 #!/bin/sh
 set -eu
 mode=${1:?service or e2e}
+shift
 case "$mode" in service|e2e) ;; *) exit 2;; esac
 project="roadbook-test-$(date +%s)-$$"
 cleanup() { docker compose -p "$project" -f compose.test.yaml down -v --remove-orphans >/dev/null; }
@@ -9,5 +10,5 @@ if [ "$mode" = service ]; then
   docker compose -p "$project" -f compose.test.yaml run --rm service
 else
   docker compose -p "$project" -f compose.test.yaml build app
-  docker compose -p "$project" -f compose.test.yaml run --rm browser
+  docker compose -p "$project" -f compose.test.yaml run --rm browser npm run test:e2e -- "$@"
 fi

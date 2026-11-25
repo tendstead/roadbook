@@ -2,7 +2,8 @@
 
 Updated 2026-11-07. This records the planning conversation, not a finished or
 approved implementation specification. Confirmed choices are separated from
-proposals and open questions. Read with `idea.md` and contributor guidance.
+proposals and historical open questions. The consolidated `docs/design.md` is the
+implementation source of truth; read it with contributor guidance.
 
 ## Purpose and delivery
 
@@ -104,7 +105,8 @@ Roadbook functionality. All commits must be signed. Public repository requested:
 
 ## Proposed application and technical structure
 
-These are proposals pending design review, not implemented contracts.
+These proposals informed the consolidated design. See `docs/design.md` and
+`docs/api.md` for implementation decisions and current interfaces.
 
 - Navigation: Overview, Fuel, Costs & upkeep, and Vehicle/settings. Put imports,
   profile management and units under settings.
@@ -152,8 +154,8 @@ These are proposals pending design review, not implemented contracts.
 - E2E tests: mobile/desktop entry and history, conditional profile controls,
   vehicle sharing, import review, dashboards, and attachment viewing. Verify that
   a 20-entry list requests no original images.
-- Replace the intentionally failing app-check with real application verification.
-  Bootstrap release-script checks alone never establish application readiness.
+- Full app-check now runs real application verification. Bootstrap release-script
+  checks alone never establish application readiness.
 - Keep tests in disposable Roadbook stacks; never touch sibling app data/volumes.
   Use manual GHCR releases after full checks. Publishing is separate from deploy.
 
@@ -174,7 +176,7 @@ in shopping-list's inspected local checkout or remote default-branch root.
 No changes to sibling repositories are authorized here. This choice does not
 relicense vision-bill or any other existing project.
 
-## Decisions still needed before an implementation specification
+## Historical questions resolved or bounded by the implementation design
 
 - Validation details for missing/reset/corrected odometers and missed fills;
   explicit-distance precedence and highlighting incomplete records are agreed.

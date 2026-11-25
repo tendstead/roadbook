@@ -29,6 +29,17 @@ services:
     extends: {file: compose.tools.yaml, service: browser}
     depends_on: {app: {condition: service_healthy}}
     command: ["npm", "run", "test:e2e"]
+  restore-app:
+    build: .
+    environment: {DATABASE_URL: "postgres://roadbook:test-only@db:5432/restored?sslmode=disable"}
+    volumes: ["restored-files:/data"]
+    depends_on: {db: {condition: service_healthy}}
+    cpus: 2
+    mem_limit: 512m
+  probe:
+    extends: {file: compose.tools.yaml, service: frontend}
+    environment: {BASE_URL: "${BASE_URL:-http://app:8080}"}
 volumes:
   test-go-mod:
   test-go-build:
+  restored-files:

@@ -100,15 +100,32 @@ Mark current year in progress. Gaps remain visible in graphs, not fabricated zer
 ## UX, import, and attachments
 
 Mobile-first purple shell, outline icons, neutral surfaces. Four destinations:
-Overview, Fuel, Costs & upkeep, Settings. Quick Add fuel is prominent. Choose
+Overview, Fuel, Costs & upkeep, Settings. Quick Add fuel is prominent.
+All four destinations and Add fuel appear as outline icons in the mobile bar,
+without a Menu button or visible text labels. Accessible names remain available
+to screen readers; desktop navigation retains its text labels. Choose
 vehicle if more than one is available. Hide profile/sharing/payer controls when
 only one profile exists. Settings supports first vehicle, profiles, membership,
 units, schedules, CSV import/export and backup guidance. No offline write queue.
 Never imply an unsaved form is stored; retain form values on recoverable errors.
+English/German interface language is detected from the browser on first use and
+can be overridden per browser in Settings. Localize presentation and known feedback,
+keeping stored values, units and CSV interpretation independent; see [i18n](i18n.md).
 
 Overview: monthly fuel spending bars, consumption/fuel-cost cards, total-expense
 card, upkeep/month, yearly distance display, recent entries and gap explanations.
+The overview also charts monthly fuel consumption in L/100 km for the selected
+vehicle. Sum the existing complete intervals' litres and distance per closing
+month before dividing; never average individual ratios. Unmeasured months have
+no plotted value, but connect measured points across them: elapsed time without
+refuelling is not evidence of missing records. Break the line only when the fuel
+calculation reports an incomplete interval. Reuse chart scales, tooltips and
+accessible tables. An empty history or no complete intervals shows an empty state.
 History supports edit/delete, vehicle/date filters and attachment viewing.
+Fuel and cost history use a compact filter bar with consistently sized date
+inputs and 7-day, 30-day, six-calendar-month and all-date shortcuts. Day ranges
+include today in the installation timezone; six months clamps month-end dates.
+Custom date edits clear shortcut selection, and all dates clears both bounds.
 
 CSV import supports delimiters comma/semicolon/tab, localized decimal/date
 formats, multiple table ranges per file, fuel/expense/schedule types and mapped
@@ -116,8 +133,19 @@ columns. All rows preview as valid/warning/error; block invalid selected rows;
 allow deselection. Preserve unmapped cells as extra data unless explicitly ignored.
 Summary cells are not silently treated as itemized records. Commit in one DB
 transaction with a content+mapping+vehicle fingerprint and per-row keys. Repeat
-commit is idempotent; warn about matching existing records. Never force unknown
-tank status to full. Export complete records and metadata with explicit units.
+commit is idempotent; warn about matching existing records. Unspecified API tank
+status remains unknown; import assumptions are visible in the fill-type control. Export complete records and metadata with explicit units.
+
+The v1 guided import workspace lives at Settings → Import (`/settings#import`).
+An empty-history banner links there until the first fuel or expense record exists.
+Read dropped/selected CSV files in the browser, show compact source-header chips
+with two raw examples for the selected column, and map through drag, click or
+accessible dropdowns. Destination fields use compact rows; optional details and
+format settings start collapsed with an interpretation summary. A short hint
+explains that selecting a chip reveals example values. Explicit source formats
+and units drive two unsaved examples using the shared history-entry presentation.
+No source is sent until server review is requested; interpretation/context changes
+invalidate review. See [workspace design](superpowers/specs/2026-11-08-import-workspace-design.md).
 
 Attachments accept JPEG/PNG/WebP, validate actual decoding, correct orientation,
 retain original bytes, cap each file at 20 MiB and decoded image at 40 megapixels.
@@ -145,3 +173,26 @@ mobile/desktop first use and shared-vehicle flows. Isolate test DBs/volumes and
 resource limits. Full checks include formatting, lint/types, vet/audits, unit and
 service tests, e2e, production build and workflow lint. Real exports are local
 acceptance input only, never fixtures or repository configuration.
+
+## Fill interpretation and overview interactions
+
+Visible fuel labels use “Filled to full?” and full/partial fill wording. A CSV
+batch override is an explicit user assertion, not an inference from a missing
+column. It updates local and server previews, retains source cells/provenance and
+allows per-row corrections. A newly selected file resets the batch assertion.
+The “Filled to full?” mapping row offers full/partial/unknown batch choices and
+source columns in one selector. Mapping a column (by drop, click or selector)
+uses CSV values; choosing
+a batch value removes the column mapping. Clearing a column marks fills unknown.
+
+Custom SVG overview charts show five value-labelled grid levels from zero to the
+maximum, responsive non-overlapping period labels, and hover/focus/tap tooltips.
+Exact values remain in a screen-reader-accessible table without a visible
+“View values” disclosure. The header sun/moon control stores light/dark preference
+per browser, initially following the device, using the published shared theme.
+
+The user-requested CSV import default is “All fills were full,” preselected when
+choosing each file. It is shown explicitly in local examples and server review,
+with per-row correction and CSV/partial/unknown alternatives retained. This is a
+UI default for the reviewed import, not a change to unspecified API values or
+existing records. Full-fill is listed first in the import review dropdown.

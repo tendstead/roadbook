@@ -14,7 +14,13 @@ jobs:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
           persist-credentials: false
-      - name: Install dependencies
-        run: make deps
       - name: Verify application and release tooling
         run: make app-check
+      - name: Upload synthetic browser screenshots and failure traces
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: roadbook-browser-results
+          path: web/test-results/
+          if-no-files-found: ignore
+          retention-days: 7

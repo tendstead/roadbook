@@ -38,11 +38,16 @@ down:
 	docker compose -p roadbook down
 logs:
 	docker compose -p roadbook logs -f --tail=100
-check: fmt-check lint vet vuln test service-test e2e build workflow-lint
-app-check: check
+.PHONY: recovery-test
+recovery-test:
+	sh scripts/recovery-test.sh
+check: fmt-check lint vet vuln test service-test e2e build recovery-test workflow-lint
+app-check:
+	$(MAKE) deps
+	$(MAKE) check
 release-test:
 	$(TOOLS) run --rm frontend node --test /app/scripts/release.test.mjs
 workflow-lint:
-	docker run --rm --cpus 1 --memory 128m -v "$(CURDIR):/repo:ro" -w /repo rhysd/actionlint:1.7.12 -no-color .github/workflows/checks.yml
+	docker run --rm --cpus 1 --memory 128m -v "$(CURDIR):/repo:ro" -w /repo rhysd/actionlint:1.7.12 -no-color .github/workflows/checks.yml .github/workflows/release.yml
 hooks:
 	pre-commit install
