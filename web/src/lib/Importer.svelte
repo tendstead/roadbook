@@ -184,13 +184,25 @@
     e.preventDefault();
     void readFile(e.dataTransfer?.files[0]);
   }
+  function mapColumn(field: string, column: number) {
+    mappings[field] = column;
+    if (field === 'tank') tankOverride = column >= 0 ? '' : 'unknown';
+  }
+  function selectMapping(field: string, value: string) {
+    if (field === 'tank' && ['full', 'partial', 'unknown'].includes(value)) {
+      tankOverride = value;
+      delete mappings.tank;
+    } else {
+      mapColumn(field, Number(value));
+    }
+  }
   function dropColumn(e: DragEvent, field: string) {
     e.preventDefault();
     const raw = e.dataTransfer?.getData('application/x-roadbook-column');
     if (!raw || !/^\d+$/.test(raw)) return;
     const col = Number(raw);
     if (col < headers.length) {
-      mappings[field] = col;
+      mapColumn(field, col);
       activeColumn = null;
     }
   }
@@ -292,28 +304,6 @@
       {#if filename}<small>{filename}</small>{/if}
     </div>
     {#if source}
-      {#if kind === 'fuel'}
-        <label
-          >{$t('Fill type for this import')}
-          <select
-            bind:value={tankOverride}
-            aria-label={$t('Fill type for this import')}
-            aria-describedby="fill-override-help"
-          >
-            <option value="full">{$t('All fills were full')}</option>
-            <option value=""
-              >{$t('Use CSV values · unknown when not mapped')}</option
-            >
-            <option value="partial">{$t('All fills were partial')}</option>
-            <option value="unknown">{$t('Mark all as unknown')}</option>
-          </select>
-          <small id="fill-override-help"
-            >{$t(
-              'A full fill means you filled the tank completely. This choice overrides the mapped column; individual rows can still be corrected in review.'
-            )}</small
-          >
-        </label>
-      {/if}
       <details class="import-format" bind:open={formatOpen}>
         <summary
           ><span>{$t('Import format')}</span><small>
@@ -437,7 +427,7 @@
                   aria-label={$t('Map {field}', { field: $t(names[field]) })}
                   onclick={() => {
                     if (activeColumn !== null) {
-                      mappings[field] = activeColumn;
+                      mapColumn(field, activeColumn);
                       activeColumn = null;
                     }
                   }}
@@ -446,13 +436,22 @@
                 </button>
                 <select
                   aria-label={$t(names[field]) + ' ' + $t('column')}
-                  value={mappings[field] ?? -1}
-                  onchange={(e) =>
-                    (mappings[field] = Number(e.currentTarget.value))}
+                  value={field === 'tank'
+                    ? tankOverride || (mappings[field] ?? 'unknown')
+                    : (mappings[field] ?? -1)}
+                  onchange={(e) => selectMapping(field, e.currentTarget.value)}
                 >
-                  <option value={-1}
-                    >{$t('Not mapped · preserve source')}</option
-                  >
+                  {#if field === 'tank'}
+                    <option value="full">{$t('All fills were full')}</option>
+                    <option value="partial"
+                      >{$t('All fills were partial')}</option
+                    >
+                    <option value="unknown">{$t('Mark all as unknown')}</option>
+                  {:else}
+                    <option value={-1}
+                      >{$t('Not mapped · preserve source')}</option
+                    >
+                  {/if}
                   {#each headers as header, i (i)}<option value={i}
                       >{i + 1}: {header || $t('(unnamed)')}</option
                     >{/each}
@@ -460,7 +459,7 @@
                 {#if (mappings[field] ?? -1) >= 0}
                   <button
                     class="clear-mapping"
-                    onclick={() => (mappings[field] = -1)}
+                    onclick={() => mapColumn(field, -1)}
                     aria-label={$t('Clear {field}', {
                       field: $t(names[field])
                     })}

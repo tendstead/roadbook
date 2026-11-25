@@ -4,6 +4,7 @@
   import { data, selectedVehicle } from './api';
   import { formatters as fmt } from './format';
   import Chart from './Chart.svelte';
+  import { monthlyConsumption } from './consumption-chart';
   const vehicle = $derived(
     $data?.state.vehicles.find((v) => v.id === $selectedVehicle)
   );
@@ -114,6 +115,31 @@
             label,
             value: value / 100
           }))
+        }
+      ]}
+    />
+    <Chart
+      title={$t('Fuel consumption over time')}
+      unit="L/100 km"
+      connectMissing
+      description={$t(
+        'Monthly consumption · Complete full-to-full intervals, weighted by distance and assigned to their closing month.'
+      )}
+      missingLabel={$t('No complete fuel interval')}
+      series={[
+        {
+          name: vehicle.name,
+          color: colors[0],
+          values: monthlyConsumption(
+            stats.fuel.intervals,
+            $data.state.records
+              .filter(
+                (entry) =>
+                  entry.kind === 'fuel' && entry.vehicle_id === vehicle.id
+              )
+              .map((entry) => entry.date),
+            stats.fuel.break_dates
+          )
         }
       ]}
     />

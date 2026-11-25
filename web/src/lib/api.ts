@@ -60,6 +60,13 @@ export interface Attachment {
   has_thumbnail: boolean;
 }
 export interface FuelStats {
+  break_dates: string[];
+  intervals: {
+    date: string;
+    distance_m: number;
+    volume_ml: number;
+    amount_minor: number | null;
+  }[];
   consumption: string;
   fuel_cost_per_km: string;
   total_distance_m: number;

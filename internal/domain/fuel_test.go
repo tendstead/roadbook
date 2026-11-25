@@ -33,3 +33,26 @@ func TestOdometerGapIsNotNegativeDistance(t *testing.T) {
 		t.Fatal(got)
 	}
 }
+
+func TestFuelBreakDatesDoNotInferMissingFillsFromElapsedTime(t *testing.T) {
+	entries := []FuelEntry{
+		{Date: "2025-01-01", Tank: "full"},
+		{Date: "2025-03-01", Tank: "full", DistanceM: ptr(500000), VolumeML: ptr(30000)},
+		{Date: "2025-06-01", Tank: "partial", DistanceM: ptr(200000), VolumeML: ptr(10000)},
+		{Date: "2025-07-01", Tank: "full", DistanceM: ptr(300000), VolumeML: ptr(20000)},
+	}
+	stats := CalculateFuel(entries, nil)
+	if len(stats.BreakDates) != 0 || len(stats.Intervals) != 2 {
+		t.Fatalf("ordinary months without fills broke continuity: %+v", stats)
+	}
+	entries = append(entries, FuelEntry{Date: "2025-08-01", Tank: "full", Gap: true, DistanceM: ptr(500000), VolumeML: ptr(30000)})
+	stats = CalculateFuel(entries, nil)
+	if len(stats.BreakDates) != 1 || stats.BreakDates[0] != "2025-08-01" {
+		t.Fatalf("explicit missing-record flag should break continuity: %+v", stats)
+	}
+	entries = append(entries, FuelEntry{Date: "2025-09-01", Tank: "full", DistanceM: ptr(500000)})
+	stats = CalculateFuel(entries, nil)
+	if len(stats.BreakDates) != 2 || stats.BreakDates[1] != "2025-09-01" {
+		t.Fatalf("missing volume should break continuity: %+v", stats)
+	}
+}

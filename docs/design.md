@@ -100,7 +100,10 @@ Mark current year in progress. Gaps remain visible in graphs, not fabricated zer
 ## UX, import, and attachments
 
 Mobile-first purple shell, outline icons, neutral surfaces. Four destinations:
-Overview, Fuel, Costs & upkeep, Settings. Quick Add fuel is prominent. Choose
+Overview, Fuel, Costs & upkeep, Settings. Quick Add fuel is prominent.
+All four destinations and Add fuel appear as outline icons in the mobile bar,
+without a Menu button or visible text labels. Accessible names remain available
+to screen readers; desktop navigation retains its text labels. Choose
 vehicle if more than one is available. Hide profile/sharing/payer controls when
 only one profile exists. Settings supports first vehicle, profiles, membership,
 units, schedules, CSV import/export and backup guidance. No offline write queue.
@@ -111,7 +114,18 @@ keeping stored values, units and CSV interpretation independent; see [i18n](i18n
 
 Overview: monthly fuel spending bars, consumption/fuel-cost cards, total-expense
 card, upkeep/month, yearly distance display, recent entries and gap explanations.
+The overview also charts monthly fuel consumption in L/100 km for the selected
+vehicle. Sum the existing complete intervals' litres and distance per closing
+month before dividing; never average individual ratios. Unmeasured months have
+no plotted value, but connect measured points across them: elapsed time without
+refuelling is not evidence of missing records. Break the line only when the fuel
+calculation reports an incomplete interval. Reuse chart scales, tooltips and
+accessible tables. An empty history or no complete intervals shows an empty state.
 History supports edit/delete, vehicle/date filters and attachment viewing.
+Fuel and cost history use a compact filter bar with consistently sized date
+inputs and 7-day, 30-day, six-calendar-month and all-date shortcuts. Day ranges
+include today in the installation timezone; six months clamps month-end dates.
+Custom date edits clear shortcut selection, and all dates clears both bounds.
 
 CSV import supports delimiters comma/semicolon/tab, localized decimal/date
 formats, multiple table ranges per file, fuel/expense/schedule types and mapped
@@ -166,6 +180,10 @@ Visible fuel labels use “Filled to full?” and full/partial fill wording. A C
 batch override is an explicit user assertion, not an inference from a missing
 column. It updates local and server previews, retains source cells/provenance and
 allows per-row corrections. A newly selected file resets the batch assertion.
+The “Filled to full?” mapping row offers full/partial/unknown batch choices and
+source columns in one selector. Mapping a column (by drop, click or selector)
+uses CSV values; choosing
+a batch value removes the column mapping. Clearing a column marks fills unknown.
 
 Custom SVG overview charts show five value-labelled grid levels from zero to the
 maximum, responsive non-overlapping period labels, and hover/focus/tap tooltips.

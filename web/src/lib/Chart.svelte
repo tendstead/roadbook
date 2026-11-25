@@ -1,23 +1,34 @@
 <script lang="ts">
   import { formatters as fmt } from './format';
   import { translator as t } from './i18n';
-  import { labelIndexes } from './chart-layout';
-  type Value = { label: string; value: number };
-  type Series = { name: string; color: string; values: Value[] };
+  import {
+    labelIndexes,
+    lineSegments,
+    type ChartValue,
+    type MeasuredValue
+  } from './chart-layout';
+  type Value = MeasuredValue;
+  type Series = { name: string; color: string; values: ChartValue[] };
   let {
     title,
     series,
     unit = '',
     currency = '',
     bars = false,
-    extraLabels = []
+    connectMissing = false,
+    extraLabels = [],
+    description = '',
+    missingLabel = $t('No recorded distance')
   }: {
     title: string;
     series: Series[];
     unit?: string;
     currency?: string;
     bars?: boolean;
+    connectMissing?: boolean;
     extraLabels?: string[];
+    description?: string;
+    missingLabel?: string;
   } = $props();
   const id = $props.id();
   let width = $state(640);
@@ -33,7 +44,10 @@
     ].sort()
   );
   const max = $derived(
-    Math.max(1, ...series.flatMap((s) => s.values.map((v) => v.value)))
+    Math.max(1, ...series.flatMap((s) => s.values.map((v) => v.value ?? 0)))
+  );
+  const hasValues = $derived(
+    series.some((s) => s.values.some((v) => v.value !== null))
   );
   const visibleLabels = $derived(
     labelIndexes(labels.length, Math.max(2, Math.floor(plotWidth / 105) + 1))
@@ -100,7 +114,8 @@
 />
 <section class="panel chart">
   <h2>{title}</h2>
-  {#if labels.length}
+  {#if description}<p class="muted">{description}</p>{/if}
+  {#if labels.length && hasValues}
     <div class="chart-plot" bind:clientWidth={width} data-chart={id}>
       <svg viewBox={`0 0 ${chartWidth} 235`} role="group" aria-label={title}>
         <title>{title}</title>
@@ -145,75 +160,78 @@
           >
         {/each}
         {#each series as s, seriesIndex (seriesIndex)}
-          {#if !bars}<polyline
-              points={s.values
-                .map((v) => `${x(v.label)},${y(v.value)}`)
-                .join(' ')}
-              fill="none"
-              stroke={s.color}
-              stroke-width="2.5"
-            />{/if}
-          {#each s.values as v (v.label)}
-            <g
-              role="button"
-              tabindex="0"
-              aria-label={`${s.name}, ${$fmt.period(v.label)}: ${formatted(v.value)}`}
-              aria-describedby={active?.name === s.name &&
-              active.label === v.label
-                ? id + '-tooltip'
-                : undefined}
-              onpointerenter={() => {
-                if (!pinned) show(s.name, v);
-              }}
-              onpointerleave={() => {
-                if (!pinned) active = null;
-              }}
-              onfocus={() => show(s.name, v)}
-              onblur={() => {
-                if (!pinned) active = null;
-              }}
-              onclick={() => toggle(s.name, v)}
-              onkeydown={(e) => {
-                if (e.key === 'Enter' || e.key === ' ') {
-                  e.preventDefault();
-                  toggle(s.name, v);
-                }
-              }}
-            >
-              {#if bars}
-                <rect
-                  class="chart-mark"
-                  x={x(v.label) -
-                    Math.min(22, (plotWidth / labels.length) * 0.75) / 2}
-                  y={y(v.value)}
-                  width={Math.min(22, (plotWidth / labels.length) * 0.75)}
-                  height={Math.max(0, 190 - y(v.value))}
-                  rx="3"
-                  fill={s.color}
-                />
-                <rect
-                  x={x(v.label) - plotWidth / labels.length / 2}
-                  y="30"
-                  width={plotWidth / labels.length}
-                  height="162"
-                  fill="transparent"
-                />
-              {:else}
-                <circle
-                  class="chart-mark"
-                  cx={x(v.label)}
-                  cy={y(v.value)}
-                  r="4.5"
-                  fill={s.color}
-                />
-                <circle
-                  cx={x(v.label)}
-                  cy={y(v.value)}
-                  r="12"
-                  fill="transparent"
-                />
-              {/if}
-            </g>
+          {#if !bars}{#each lineSegments(s.values, connectMissing) as segment, segmentIndex (segmentIndex)}<polyline
+                points={segment
+                  .map((v) => `${x(v.label)},${y(v.value)}`)
+                  .join(' ')}
+                fill="none"
+                stroke={s.color}
+                stroke-width="2.5"
+              />{/each}{/if}
+          {#each s.values as point (point.label)}
+            {#if point.value !== null}
+              {@const v = { label: point.label, value: point.value }}
+              <g
+                role="button"
+                tabindex="0"
+                aria-label={`${s.name}, ${$fmt.period(v.label)}: ${formatted(v.value)}`}
+                aria-describedby={active?.name === s.name &&
+                active.label === v.label
+                  ? id + '-tooltip'
+                  : undefined}
+                onpointerenter={() => {
+                  if (!pinned) show(s.name, v);
+                }}
+                onpointerleave={() => {
+                  if (!pinned) active = null;
+                }}
+                onfocus={() => show(s.name, v)}
+                onblur={() => {
+                  if (!pinned) active = null;
+                }}
+                onclick={() => toggle(s.name, v)}
+                onkeydown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    toggle(s.name, v);
+                  }
+                }}
+              >
+                {#if bars}
+                  <rect
+                    class="chart-mark"
+                    x={x(v.label) -
+                      Math.min(22, (plotWidth / labels.length) * 0.75) / 2}
+                    y={y(v.value)}
+                    width={Math.min(22, (plotWidth / labels.length) * 0.75)}
+                    height={Math.max(0, 190 - y(v.value))}
+                    rx="3"
+                    fill={s.color}
+                  />
+                  <rect
+                    x={x(v.label) - plotWidth / labels.length / 2}
+                    y="30"
+                    width={plotWidth / labels.length}
+                    height="162"
+                    fill="transparent"
+                  />
+                {:else}
+                  <circle
+                    class="chart-mark"
+                    cx={x(v.label)}
+                    cy={y(v.value)}
+                    r="4.5"
+                    fill={s.color}
+                  />
+                  <circle
+                    cx={x(v.label)}
+                    cy={y(v.value)}
+                    r="12"
+                    fill="transparent"
+                  />
+                {/if}
+              </g>
+            {/if}
           {/each}
         {/each}
       </svg>
@@ -246,13 +264,15 @@
         <tbody
           >{#each labels as label (label)}<tr
               ><th>{$fmt.period(label)}</th>{#each series as s, i (i)}<td
-                  >{s.values.find((v) => v.label === label)
-                    ? formatted(s.values.find((v) => v.label === label)!.value)
-                    : $t('No recorded distance')}</td
+                  >{s.values.find((v) => v.label === label)?.value != null
+                    ? formatted(s.values.find((v) => v.label === label)!.value!)
+                    : missingLabel}</td
                 >{/each}</tr
             >{/each}</tbody
         >
       </table>
     </div>
-  {:else}<p class="muted">{$t('No recorded data yet.')}</p>{/if}
+  {:else}<p class="muted">
+      {labels.length ? missingLabel : $t('No recorded data yet.')}
+    </p>{/if}
 </section>

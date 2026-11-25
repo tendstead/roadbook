@@ -32,6 +32,85 @@ async function seed(page: Page, request: APIRequestContext) {
   );
   return { headers, vehicle };
 }
+test('history date shortcuts filter both tabs and allow custom dates and reset', async ({
+  page,
+  request
+}) => {
+  const { headers, vehicle } = await seed(page, request);
+  await page.clock.setFixedTime(new Date('2025-08-31T12:00:00Z'));
+  for (const kind of ['fuel', 'expense']) {
+    for (const date of [
+      '2025-08-25',
+      '2025-08-24',
+      '2025-08-02',
+      '2025-02-28'
+    ]) {
+      expect(
+        (
+          await request.post('/api/entries', {
+            headers,
+            data: {
+              vehicle_id: vehicle.id,
+              kind,
+              date,
+              amount_minor: 1000,
+              category: 'service',
+              tank: 'full'
+            }
+          })
+        ).ok()
+      ).toBe(true);
+    }
+    await page.goto(kind === 'fuel' ? '/fuel' : '/costs');
+    const shortcuts = page.getByRole('group', { name: 'Date range shortcuts' });
+    await expect(page.locator('.history-entry')).toHaveCount(4);
+    await shortcuts
+      .getByRole('button', { name: '7 days', exact: true })
+      .click();
+    await expect(page.getByLabel('From', { exact: true })).toHaveValue(
+      '2025-08-25'
+    );
+    await expect(page.getByLabel('Through', { exact: true })).toHaveValue(
+      '2025-08-31'
+    );
+    await expect(page.locator('.history-entry')).toHaveCount(1);
+    await expect(
+      shortcuts.getByRole('button', { name: '7 days', exact: true })
+    ).toHaveAttribute('aria-pressed', 'true');
+    await page.getByLabel('From', { exact: true }).fill('2025-08-24');
+    await expect(shortcuts.locator('[aria-pressed="true"]')).toHaveCount(0);
+    await expect(page.locator('.history-entry')).toHaveCount(2);
+    await shortcuts
+      .getByRole('button', { name: '30 days', exact: true })
+      .click();
+    await expect(page.locator('.history-entry')).toHaveCount(3);
+    await shortcuts
+      .getByRole('button', { name: '6 months', exact: true })
+      .click();
+    await expect(page.getByLabel('From', { exact: true })).toHaveValue(
+      '2025-02-28'
+    );
+    await expect(page.locator('.history-entry')).toHaveCount(4);
+    await page.getByLabel('From', { exact: true }).fill('2025-09-01');
+    await expect(
+      page.getByRole('heading', { name: 'No entries in this date range.' })
+    ).toBeVisible();
+    await page
+      .getByRole('button', { name: 'Show all dates', exact: true })
+      .click();
+    await expect(page.getByLabel('From', { exact: true })).toHaveValue('');
+    await expect(page.getByLabel('Through', { exact: true })).toHaveValue('');
+    await expect(
+      shortcuts.getByRole('button', { name: 'All dates', exact: true })
+    ).toHaveAttribute('aria-pressed', 'true');
+    await expect(page.locator('.history-entry')).toHaveCount(4);
+    expect(
+      await page.evaluate(
+        () => document.documentElement.scrollWidth <= innerWidth
+      )
+    ).toBe(true);
+  }
+});
 test('full-fill import default updates local examples, server review and saved records', async ({
   page,
   request
@@ -54,7 +133,7 @@ test('full-fill import default updates local examples, server review and saved r
     await page.getByRole('combobox', { name, exact: true }).selectOption(value);
   await expect(
     page.getByRole('combobox', {
-      name: 'Fill type for this import',
+      name: 'Filled to full? column',
       exact: true
     })
   ).toHaveValue('full');
@@ -80,6 +159,158 @@ test('full-fill import default updates local examples, server review and saved r
     'partial'
   ]);
   expect(state.state.records[0].extra['import:tank_override']).toBe('full');
+});
+test('fill assumptions and source columns share one mapping control', async ({
+  page,
+  request
+}) => {
+  await seed(page, request);
+  await page.goto('/settings#import');
+  await page.getByLabel('CSV file', { exact: true }).setInputFiles({
+    name: 'synthetic.csv',
+    mimeType: 'text/csv',
+    buffer: Buffer.from('Date,Full\n01.01.2025,partial\n02.01.2025,full')
+  });
+  await expect(
+    page.getByRole('combobox', {
+      name: 'Fill type for this import',
+      exact: true
+    })
+  ).toHaveCount(0);
+  const fill = page.getByRole('combobox', {
+    name: 'Filled to full? column',
+    exact: true
+  });
+  await expect(fill).toHaveValue('full');
+  await page
+    .getByRole('combobox', { name: 'Date column', exact: true })
+    .selectOption('0');
+  await fill.selectOption('1');
+  await expect(page.locator('.import-example').first()).toContainText(
+    'Partial fill'
+  );
+  await page
+    .getByRole('button', { name: 'Preview import', exact: true })
+    .click();
+  await expect(
+    page.getByRole('combobox', { name: 'Fill type row 2', exact: true })
+  ).toHaveValue('partial');
+  await fill.selectOption('full');
+  await expect(page.getByRole('heading', { name: /^Review/ })).toHaveCount(0);
+  await expect(page.locator('.import-example').first()).toContainText(
+    'Full fill'
+  );
+  await page
+    .getByRole('button', { name: 'Use column 2: Full', exact: true })
+    .click();
+  await page
+    .getByRole('button', { name: 'Map Filled to full?', exact: true })
+    .click();
+  await expect(fill).toHaveValue('1');
+  await page
+    .getByRole('button', { name: 'Clear Filled to full?', exact: true })
+    .click();
+  await expect(fill).toHaveValue('unknown');
+  await fill.selectOption('partial');
+  await expect(page.locator('.import-example').first()).toContainText(
+    'Partial fill'
+  );
+  const previewRequest = page.waitForRequest((r) =>
+    r.url().endsWith('/api/import/preview')
+  );
+  await page
+    .getByRole('button', { name: 'Preview import', exact: true })
+    .click();
+  const submitted = (await previewRequest).postDataJSON();
+  expect(submitted.tank_override).toBe('partial');
+  expect(submitted.columns.tank).toBeUndefined();
+  const transfer = await page.evaluateHandle(() => {
+    const data = new DataTransfer();
+    data.setData('application/x-roadbook-column', '1');
+    return data;
+  });
+  await page
+    .locator('.mapping-target[data-field="tank"]')
+    .dispatchEvent('drop', { dataTransfer: transfer });
+  await transfer.dispose();
+  await expect(fill).toHaveValue('1');
+  await page.locator('.import-format > summary').click();
+  await page
+    .getByRole('combobox', { name: 'Delimiter', exact: true })
+    .selectOption(';');
+  await expect(fill).toHaveValue('unknown');
+});
+test('consumption chart uses complete intervals, weighted months and visible gaps', async ({
+  page,
+  request
+}) => {
+  const { headers, vehicle } = await seed(page, request);
+  await page.goto('/');
+  const chart = page.locator('.chart').filter({
+    has: page.getByRole('heading', {
+      name: 'Fuel consumption over time',
+      exact: true
+    })
+  });
+  await expect(chart).toContainText('No recorded data yet.');
+  for (const [date, tank, volume_ml, distance_m, gap] of [
+    ['2025-01-01', 'full', 40000, 500000, false],
+    ['2025-02-01', 'full', 10000, 100000, false],
+    ['2025-02-05', 'partial', 10000, 300000, false],
+    ['2025-02-20', 'full', 20000, 600000, false],
+    ['2025-03-01', 'full', 20000, 400000, true],
+    ['2025-04-01', 'full', 30000, 500000, false],
+    ['2025-06-01', 'full', 30000, 500000, false],
+    ['2025-07-01', 'partial', 10000, 200000, false],
+    ['2025-08-01', 'full', 20000, 300000, false],
+    ['2025-09-01', 'unknown', 20000, 400000, false]
+  ]) {
+    expect(
+      (
+        await request.post('/api/entries', {
+          headers,
+          data: {
+            vehicle_id: vehicle.id,
+            kind: 'fuel',
+            date,
+            tank,
+            volume_ml,
+            distance_m,
+            gap
+          }
+        })
+      ).ok()
+    ).toBe(true);
+  }
+  await page.reload();
+  const points = chart.getByRole('button');
+  await expect(points).toHaveCount(4);
+  await expect(chart.locator('polyline')).toHaveCount(2);
+  const segments = await chart
+    .locator('polyline')
+    .evaluateAll((lines) =>
+      lines.map(
+        (line) => line.getAttribute('points')!.trim().split(/\s+/).length
+      )
+    );
+  expect(segments).toEqual([1, 3]);
+  await expect(chart.locator('.y-axis-label')).toHaveText([
+    '0 L/100 km',
+    '1.50 L/100 km',
+    '3 L/100 km',
+    '4.50 L/100 km',
+    '6 L/100 km'
+  ]);
+  await points.first().focus();
+  await expect(chart.getByRole('tooltip')).toContainText('Feb 2025');
+  await expect(chart.getByRole('tooltip')).toContainText('4 L/100 km');
+  const table = chart.locator('table');
+  await expect(table.locator('tbody tr')).toHaveCount(9);
+  await expect(table.locator('tbody tr').nth(2)).toContainText(
+    'No complete fuel interval'
+  );
+  await points.last().click();
+  await expect(chart.getByRole('tooltip')).toContainText('6 L/100 km');
 });
 test('charts have quarter-value scales, usable tooltips and non-overlapping end labels', async ({
   page,

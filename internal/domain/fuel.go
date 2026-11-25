@@ -29,6 +29,7 @@ type FuelStats struct {
 	MatchedDistanceM int64              `json:"matched_distance_m"`
 	PricedDistanceM  int64              `json:"priced_distance_m"`
 	Intervals        []Interval         `json:"intervals"`
+	BreakDates       []string           `json:"break_dates"`
 	Distances        []MeasuredDistance `json:"distances"`
 	Warnings         []string           `json:"warnings"`
 }
@@ -46,7 +47,7 @@ func RatioScaled(n, d, scaleN, scaleD int64, precision int) string {
 }
 
 func CalculateFuel(entries []FuelEntry, initial *int64) FuelStats {
-	s := FuelStats{Intervals: []Interval{}, Distances: []MeasuredDistance{}, Warnings: []string{}}
+	s := FuelStats{Intervals: []Interval{}, BreakDates: []string{}, Distances: []MeasuredDistance{}, Warnings: []string{}}
 	previous := initial
 	open := false
 	priced := true
@@ -96,6 +97,7 @@ func CalculateFuel(entries []FuelEntry, initial *int64) FuelStats {
 				s.Intervals = append(s.Intervals, in)
 			}
 		} else if open {
+			s.BreakDates = append(s.BreakDates, e.Date)
 			s.Warnings = append(s.Warnings, e.Date+": incomplete fuel interval; no consumption assumed")
 			open = false
 		}

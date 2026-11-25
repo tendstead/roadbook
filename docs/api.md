@@ -37,6 +37,10 @@ Fuel and expense records share an entry interface, with `kind: fuel` or
 checked by the API. The state response is intended for small personal histories,
 not an unbounded fleet feed; pagination will be needed before fleet-scale use.
 
+Per-vehicle fuel statistics include complete `intervals` and `break_dates` for
+known interruptions in consumption continuity (missing measurements, unknown
+fullness or a missing-record flag). A month without a fill-up is not a break.
+
 CSV requests specify raw `csv`, delimiter, decimal separator, date format, source
 units, table kind, vehicle/payer, inclusive start/end rows and zero-based column
 indexes. Row 1 supplies header labels. Amount/volume/distance columns are parsed

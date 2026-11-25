@@ -8,3 +8,27 @@ export function labelIndexes(length: number, maximum: number): number[] {
     Math.round((i * (length - 1)) / (count - 1))
   );
 }
+export type ChartValue = {
+  label: string;
+  value: number | null;
+  breakBefore?: boolean;
+};
+export type MeasuredValue = { label: string; value: number };
+
+export function lineSegments(
+  values: ChartValue[],
+  connectMissing = false
+): MeasuredValue[][] {
+  const segments: MeasuredValue[][] = [];
+  let current: MeasuredValue[] = [];
+  for (const value of values) {
+    if (value.breakBefore) current = [];
+    if (value.value === null) {
+      if (!connectMissing) current = [];
+    } else {
+      if (!current.length) segments.push(current);
+      current.push({ label: value.label, value: value.value });
+    }
+  }
+  return segments;
+}

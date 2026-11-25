@@ -94,12 +94,16 @@ test('German browser default, saved language, translated shell and exact expense
       fullPage: true
     });
     if (info.project.name === 'mobile') {
-      await page.getByRole('button', { name: 'Menü', exact: true }).click();
-      const drawer = page.getByRole('dialog');
+      const nav = page.getByRole('navigation', {
+        name: 'Mobile Navigation',
+        exact: true
+      });
       await expect(
-        drawer.getByRole('heading', { name: 'Alle Bereiche' })
+        nav.getByRole('link', { name: 'Einstellungen', exact: true })
       ).toBeVisible();
-      await drawer.getByRole('button', { name: 'Menü schließen' }).click();
+      await expect(
+        page.getByRole('button', { name: 'Menü', exact: true })
+      ).toBeHidden();
     }
     expect(
       await page.evaluate(

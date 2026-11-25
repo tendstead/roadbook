@@ -202,8 +202,71 @@ th {
   color: var(--ts-muted);
   font-size: 0.85rem;
 }
+.history-context,
+.history-toolbar {
+  margin-bottom: 0.6rem;
+  gap: 0.5rem;
+}
+.history-context p,
+.history-toolbar p {
+  margin: 0;
+}
+.history-filters {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 0.5rem 0.8rem;
+  margin: 0.4rem 0 0.75rem;
+}
 .filters {
-  margin: 1.2rem 0;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 11rem));
+  gap: 0.6rem;
+}
+.filters > label {
+  min-width: 0;
+  font-size: 0.8rem;
+  gap: 0.25rem;
+}
+.filters input[type='date'] {
+  min-width: 0;
+  min-height: 44px;
+  font-size: 1rem;
+}
+.date-presets {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+}
+.date-presets button {
+  padding: 0.4rem 0.75rem;
+  border-radius: 999px;
+  font-size: 0.85rem;
+}
+.date-presets button[aria-pressed='true'] {
+  background: var(--ts-primary);
+  color: var(--ts-on-primary);
+}
+.filtered-empty {
+  margin: 0.75rem 0;
+  padding: 1rem;
+  text-align: left;
+}
+.filtered-empty h2 {
+  font-size: 1.1rem;
+}
+@media (max-width: 600px) {
+  .history-filters {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .filters {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0.5rem;
+  }
+  .filters input[type='date'] {
+    min-height: 48px;
+  }
 }
 .checkbox {
   display: flex;
@@ -538,6 +601,31 @@ dialog::backdrop {
 .theme-toggle {
   width: 44px;
   padding: 0.6rem;
+}
+
+/* All Roadbook destinations fit in the mobile bar. Keep names for assistive tech. */
+@media (max-width: 767px) {
+  .ts-mobile-bar .ts-menu-trigger {
+    display: none;
+  }
+  .ts-mobile-bar .ts-nav-label,
+  .ts-mobile-bar .ts-action > span {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+    border: 0;
+  }
+  .ts-mobile-bar .ts-nav-link,
+  .ts-mobile-bar .ts-action {
+    min-height: 48px;
+    justify-content: center;
+    gap: 0;
+  }
 }
 
 /* Dense persisted fuel rows; import examples and expense cards remain separate. */

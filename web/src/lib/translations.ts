@@ -1,5 +1,16 @@
 // English source messages are keys. User and imported content is never translated.
 export const german: Record<string, string> = {
+  '7 days': '7 Tage',
+  '30 days': '30 Tage',
+  '6 months': '6 Monate',
+  'All dates': 'Alle Daten',
+  'Show all dates': 'Alle Daten anzeigen',
+  'Date range shortcuts': 'Zeitraum-Schnellauswahl',
+  'No entries in this date range.': 'Keine Einträge in diesem Zeitraum.',
+  'Fuel consumption over time': 'Kraftstoffverbrauch im Zeitverlauf',
+  'Monthly consumption · Complete full-to-full intervals, weighted by distance and assigned to their closing month.':
+    'Monatlicher Verbrauch · Vollständige Volltankintervalle, nach Strecke gewichtet und dem Monat der abschließenden Betankung zugeordnet.',
+  'No complete fuel interval': 'Kein vollständiges Tankintervall',
   'Import format': 'Importformat',
   'Comma decimals': 'Komma als Dezimalzeichen',
   'Point decimals': 'Punkt als Dezimalzeichen',
@@ -10,14 +21,9 @@ export const german: Record<string, string> = {
   'Filled to full?': 'Vollgetankt?',
   'Full fill': 'Vollgetankt',
   'Partial fill': 'Teilbetankung',
-  'Fill type for this import': 'Betankungsart für diesen Import',
-  'Use CSV values · unknown when not mapped':
-    'CSV-Werte verwenden · ohne Zuordnung unbekannt',
   'All fills were full': 'Bei allen Einträgen vollgetankt',
   'All fills were partial': 'Alle Einträge sind Teilbetankungen',
   'Mark all as unknown': 'Alle als unbekannt markieren',
-  'A full fill means you filled the tank completely. This choice overrides the mapped column; individual rows can still be corrected in review.':
-    'Vollgetankt bedeutet, dass der Tank vollständig gefüllt wurde. Diese Auswahl überschreibt die zugeordnete Spalte; einzelne Zeilen lassen sich in der Prüfung korrigieren.',
   'Fill type row {row}': 'Betankungsart Zeile {row}',
   'Fill type: {status}': 'Betankungsart: {status}',
   'Switch to light mode': 'Zum hellen Design wechseln',

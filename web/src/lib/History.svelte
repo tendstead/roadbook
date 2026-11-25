@@ -14,12 +14,26 @@
   import { sourceInformation } from './source-information';
   import EntryForm from './EntryForm.svelte';
   import Attachments from './Attachments.svelte';
+  import { historyRange, type HistoryPreset } from './history-range';
   let { kind }: { kind: string } = $props();
   let editing = $state<Entry | null>(null);
   let notice = $state('');
   let error = $state('');
   let from = $state('');
   let to = $state('');
+  let selectedRange = $state<HistoryPreset | ''>('all');
+  const presets: { id: HistoryPreset; label: string }[] = [
+    { id: '7', label: '7 days' },
+    { id: '30', label: '30 days' },
+    { id: '6months', label: '6 months' },
+    { id: 'all', label: 'All dates' }
+  ];
+  function selectRange(preset: HistoryPreset) {
+    const range = historyRange(preset, blank().date);
+    from = range.from;
+    to = range.to;
+    selectedRange = preset;
+  }
   let pendingDelete = $state('');
   const records = $derived(
     $data?.state.records
@@ -31,6 +45,11 @@
           (!to || e.date <= to)
       )
       .toReversed() || []
+  );
+  const hasHistory = $derived(
+    $data?.state.records.some(
+      (entry) => entry.kind === kind && entry.vehicle_id === $selectedVehicle
+    )
   );
   let openedFromURL = $state(false);
   $effect(() => {
@@ -66,7 +85,7 @@
       <p>{$t('Open Settings to start your vehicle history.')}</p>
     </section>
   {:else}
-    <div class="toolbar">
+    <div class="toolbar history-toolbar">
       <p class="muted">
         {records.length}
         {kind === 'fuel' ? $t('fuel stops') : $t('expenses')} · {$data.state.vehicles.find(
@@ -89,20 +108,57 @@
           entry={editing}
           onSaved={saved}
         />{/key}{/if}
-    <div class="row filters">
-      <label>{$t('From')}<input type="date" bind:value={from} /></label><label
-        >{$t('Through')}<input type="date" bind:value={to} /></label
+    <div class="history-filters">
+      <div class="filters">
+        <label
+          >{$t('From')}<input
+            type="date"
+            bind:value={from}
+            oninput={() => (selectedRange = '')}
+          /></label
+        >
+        <label
+          >{$t('Through')}<input
+            type="date"
+            bind:value={to}
+            oninput={() => (selectedRange = '')}
+          /></label
+        >
+      </div>
+      <div
+        class="date-presets"
+        role="group"
+        aria-label={$t('Date range shortcuts')}
       >
+        {#each presets as preset (preset.id)}
+          <button
+            type="button"
+            class="secondary"
+            aria-pressed={selectedRange === preset.id}
+            onclick={() => selectRange(preset.id)}>{$t(preset.label)}</button
+          >
+        {/each}
+      </div>
     </div>
-    {#if !records.length}<section class="empty">
-        <h2>{$t('A fresh page')}</h2>
-        <p>
-          {$t(
-            kind === 'fuel'
-              ? 'Add your first fuel stop, or import existing records in Settings.'
-              : 'Add your first expense, or import existing records in Settings.'
-          )}
-        </p>
+    {#if !records.length}<section
+        class="empty"
+        class:filtered-empty={hasHistory}
+      >
+        {#if hasHistory}
+          <h2>{$t('No entries in this date range.')}</h2>
+          <button class="secondary" onclick={() => selectRange('all')}
+            >{$t('Show all dates')}</button
+          >
+        {:else}
+          <h2>{$t('A fresh page')}</h2>
+          <p>
+            {$t(
+              kind === 'fuel'
+                ? 'Add your first fuel stop, or import existing records in Settings.'
+                : 'Add your first expense, or import existing records in Settings.'
+            )}
+          </p>
+        {/if}
       </section>{/if}
     {#each records as entry (entry.id)}
       <article class="panel history-entry" class:compact-fuel={kind === 'fuel'}>

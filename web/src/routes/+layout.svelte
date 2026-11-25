@@ -1,4 +1,9 @@
 <script lang="ts">
+  import OverviewIcon from '../lib/icons/OverviewIcon.svelte';
+  import FuelIcon from '../lib/icons/FuelIcon.svelte';
+  import CostsIcon from '../lib/icons/CostsIcon.svelte';
+  import SettingsIcon from '../lib/icons/SettingsIcon.svelte';
+  import AddIcon from '../lib/icons/AddIcon.svelte';
   import ThemeToggle from '../lib/ThemeToggle.svelte';
   import { resolve } from '$app/paths';
   import { translator as t, feedback, initializeLanguage } from '../lib/i18n';
@@ -23,13 +28,24 @@
   const destinations = $derived([
     {
       id: 'overview',
+      icon: OverviewIcon,
       label: $t('Overview'),
       href: '/',
       match: 'exact' as const
     },
-    { id: 'fuel', label: $t('Fuel'), href: '/fuel' },
-    { id: 'costs', label: $t('Costs & upkeep'), href: '/costs' },
-    { id: 'settings', label: $t('Settings'), href: '/settings' }
+    { id: 'fuel', icon: FuelIcon, label: $t('Fuel'), href: '/fuel' },
+    {
+      id: 'costs',
+      icon: CostsIcon,
+      label: $t('Costs & upkeep'),
+      href: '/costs'
+    },
+    {
+      id: 'settings',
+      icon: SettingsIcon,
+      label: $t('Settings'),
+      href: '/settings'
+    }
   ]);
   const title = $derived(
     destinations.find((d) => d.href === page.url.pathname)?.label || 'Roadbook'
@@ -48,8 +64,13 @@
   pageTitle={title}
   pathname={page.url.pathname}
   {destinations}
-  mobilePrimaryIds={['overview', 'fuel', 'costs']}
-  primaryAction={{ id: 'add-fuel', label: $t('Add fuel'), href: '/fuel?new=1' }}
+  mobilePrimaryIds={['overview', 'fuel', 'costs', 'settings']}
+  primaryAction={{
+    icon: AddIcon,
+    id: 'add-fuel',
+    label: $t('Add fuel'),
+    href: '/fuel?new=1'
+  }}
 >
   {#snippet pageActions()}<ThemeToggle />{/snippet}
   {#if $appError}<div class="error" role="alert">
@@ -59,7 +80,11 @@
       >
     </div>{/if}
   {#if $data}
-    <div class="toolbar context-controls">
+    <div
+      class="toolbar context-controls"
+      class:history-context={page.url.pathname === '/fuel' ||
+        page.url.pathname === '/costs'}
+    >
       <p class="muted">{$t('Your road. Your records.')}</p>
       <div class="row">
         {#if $data.state.profiles.length > 1}<label
